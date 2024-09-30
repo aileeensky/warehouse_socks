@@ -20,6 +20,9 @@ class TabelAnak extends Migration
                 'constraint' => 11,
                 'unsigned' => true,
             ],
+            'waktu_input' => [
+                'type' => 'DATETIME',
+            ],
             'area' => [
                 'type' => 'VARCHAR',
                 'constraint' => 10,

@@ -6,13 +6,13 @@ use CodeIgniter\Model;
 
 class TabelAnakModel extends Model
 {
-    protected $table            = 'tabelanaks';
+    protected $table            = 'tabel_anak';
     protected $primaryKey       = 'id_anak';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['id_anak', 'id_induk', 'area', 'inisial', 'style', 'warna', 'qty_po_inisial', 'keterangan', 'admin'];
+    protected $allowedFields    = ['id_anak', 'id_induk', 'waktu_input', 'area', 'inisial', 'style', 'warna', 'qty_po_inisial', 'keterangan', 'admin'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -43,4 +43,13 @@ class TabelAnakModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public function getSelect()
+    {
+        return $this->select('tabel_induk.no_order,  tabel_anak.waktu_input, tabel_anak.area, tabel_induk.no_model, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, tabel_induk.delivery, tabel_anak.qty_po_inisial')
+            ->join('tabel_induk', 'tabel_anak.id_induk = tabel_induk.id_induk', 'left')
+            ->where('tabel_induk.no_model IS NOT NULL')
+            ->orderBy('tabel_anak.waktu_input', 'DESC')
+            ->findAll();
+    }
 }

@@ -15,7 +15,8 @@ $routes->post('authverify', 'AuthController::login');
 
 $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->get('', 'GudangController::index');
-    $routes->get('inputnomodel', 'GudangController::inputNoModel');
+    $routes->get('inputdatabase', 'GudangController::inputNoModel');
+    $routes->post('importdatabase', 'GudangController::importDatabase');
     $routes->get('stock', 'GudangController::stock');
     $routes->get('datapermintaan', 'GudangController::dataPermintaan');
     $routes->get('dataterkirim', 'GudangController::dataTerkirim');

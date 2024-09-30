@@ -2,19 +2,42 @@
 <?php $this->section('content'); ?>
 <section class="section">
     <div class="row">
+        <?php if (session()->getFlashdata('success')) : ?>
+            <script>
+                $(document).ready(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '<?= session()->getFlashdata('success') ?>',
+                    });
+                });
+            </script>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('error')) : ?>
+            <script>
+                $(document).ready(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: '<?= session()->getFlashdata('error') ?>',
+                    });
+                });
+            </script>
+        <?php endif; ?>
         <div class="col-lg-12">
 
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Input Database</h5>
-                    <form action="">
+                    <form action="<?= base_url('/' . $role . '/importdatabase') ?>" method="post" enctype="multipart/form-data">
                         <div class="row mb-3">
                             <label for="formFile" class="col-sm-2 col-form-label">File Upload</label>
                             <div class="col-sm-3">
-                                <input class="form-control" type="file" name="formFile">
+                                <input class="form-control" type="file" name="file">
                             </div>
                             <div class="col-sm-2">
-                                <button class="btn btn-info">Save</button>
+                                <button class="btn btn-info" type="submit">Save</button>
                             </div>
                         </div>
                     </form>
@@ -24,6 +47,7 @@
                         <thead>
                             <tr>
                                 <th scope="col">No</th>
+                                <th scope="col">Waktu Input</th>
                                 <th scope="col">No Order</th>
                                 <th scope="col">Area</th>
                                 <th scope="col">No Model</th>
@@ -35,17 +59,24 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <th scope="row">1</th>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
+                            <?php
+                            $no = 1;
+                            foreach ($db as $data) : ?>
+                                <tr>
+                                    <th scope="row"><?= $no; ?></th>
+                                    <td><?= $data['waktu_input'] ?></td>
+                                    <td><?= $data['no_order'] ?></td>
+                                    <td><?= $data['area'] ?></td>
+                                    <td><?= $data['no_model'] ?></td>
+                                    <td><?= $data['inisial'] ?></td>
+                                    <td><?= $data['style'] ?></td>
+                                    <td><?= $data['warna'] ?></td>
+                                    <td><?= $data['delivery'] ?></td>
+                                    <td><?= $data['qty_po_inisial'] ?></td>
+                                </tr>
+                            <?php
+                                $no++;
+                            endforeach; ?>
                         </tbody>
                     </table>
                     <!-- End Table with stripped rows -->

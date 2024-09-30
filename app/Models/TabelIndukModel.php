@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class TabelIndukModel extends Model
 {
-    protected $table            = 'tabelinduks';
+    protected $table            = 'tabel_induk';
     protected $primaryKey       = 'id_induk';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
@@ -43,4 +43,11 @@ class TabelIndukModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public function getIdInduk($nomodel)
+    {
+        return $this->select('id_induk')
+            ->where('no_model', $nomodel)
+            ->first();
+    }
 }
