@@ -64,4 +64,10 @@ class UserModel extends Model
             'nama' => $user['nama']
         ];
     }
+
+    public function getData()
+    {
+        return $this->select('*')
+            ->findAll();
+    }
 }

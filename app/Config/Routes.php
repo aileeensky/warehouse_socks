@@ -9,10 +9,17 @@ use CodeIgniter\Router\RouteCollection;
 //auth
 $routes->get('/', 'AuthController::index');
 $routes->get('/login', 'AuthController::index');
-$routes->post('/logout', 'AuthController::logout');
+$routes->get('/logout', 'AuthController::logout');
 $routes->post('authverify', 'AuthController::login');
 
+//monitoring
+$routes->group('/monitoring', ['filter' => 'monitoring'], function ($routes) {
+    $routes->get('', 'MonitoringController::index');
+    $routes->get('account', 'MonitoringController::account');
+    $routes->post('inputuser', 'MonitoringController::inputUser');
+});
 
+//gudang
 $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->get('', 'GudangController::index');
     $routes->get('inputdatabase', 'GudangController::inputNoModel');

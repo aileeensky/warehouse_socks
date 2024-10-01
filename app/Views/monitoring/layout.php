@@ -172,28 +172,46 @@
             </li><!-- End Dashboard Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/inputdatabase') ?>">
-                    <i class="ri-database-2-line"></i><span>Input Database</span></i>
+                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/account') ?>">
+                    <i class="ri-account-circle-line"></i><span>Account</span></i>
                 </a>
-            </li><!-- End Components Nav -->
+            </li><!-- End Create Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/stock') ?>">
-                    <i class="bi bi-box"></i><span>Stock</span></i>
+                <a class="nav-link collapsed" data-bs-target="#gudang-nav" data-bs-toggle="collapse" href="#">
+                    <i class="ri-file-list-3-line"></i><span>Gudang</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-            </li><!-- End Forms Nav -->
+                <ul id="gudang-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="<?= base_url('/' . $role . '/reportpengeluaran') ?>">
+                            <i class="bi bi-circle"></i><span>Input Jalur Baru</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= base_url('/' . $role . '/reportpemasukan') ?>">
+                            <i class="bi bi-circle"></i><span>Edit Pemasukkan</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= base_url('/' . $role . '/reportpengeluaran') ?>">
+                            <i class="bi bi-circle"></i><span>Edit Pengeluaran</span>
+                        </a>
+                    </li>
+                </ul>
+            </li><!-- End Gudang Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/datapermintaan') ?>">
-                    <i class="ri-file-list-3-line"></i><span>Data Permintaan</span>
+                <a class="nav-link collapsed" data-bs-target="#packing-nav" data-bs-toggle="collapse" href="#">
+                    <i class="ri-file-list-3-line"></i><span>Packing</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-            </li><!-- End Tables Nav -->
-
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/dataterkirim') ?>">
-                    <i class="ri-send-plane-2-line"></i><span>Data Terkirim</span>
-                </a>
-            </li><!-- End Charts Nav -->
+                <ul id="packing-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a href="<?= base_url('/' . $role . '/reportpemasukan') ?>">
+                            <i class="bi bi-circle"></i><span>Edit Permintaan</span>
+                        </a>
+                    </li>
+                </ul>
+            </li><!-- End Packing Nav -->
 
             <li class="nav-item">
                 <a class="nav-link collapsed" data-bs-target="#report-nav" data-bs-toggle="collapse" href="#">
