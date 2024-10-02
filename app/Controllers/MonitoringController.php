@@ -74,7 +74,7 @@ class MonitoringController extends BaseController
 
     public function inputUser()
     {
-        $role = session()->get('role');
+        $user = $this->userModel;
         $nama = $this->request->getPost('nama');
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
@@ -87,12 +87,75 @@ class MonitoringController extends BaseController
             'role' => $bagian,
         ];
 
-        $insert = $this->userModel->insert($data);
+        // Cek apakah username sudah ada
+        $existingUsername = $user->where('username', $username)->first();
+
+        if ($existingUsername) {
+            // Jika username sudah ada, kembalikan dengan pesan error
+            return redirect()->to(base_url(session()->get('role') . '/account/'))
+                ->withInput()
+                ->with('error', 'Username sudah ada, gagal membuat akun.');
+        }
+
+        // Jika username belum ada, lanjutkan insert data
+        $insert = $user->insert($data);
 
         if ($insert) {
             return redirect()->to(base_url(session()->get('role') . '/account/'))->withInput()->with('success', 'Berhasil Create Account');
         } else {
             return redirect()->to(base_url(session()->get('role') . '/account/'))->withInput()->with('error', 'Gagal Create Account');
+        }
+    }
+
+    public function stock()
+    {
+        $role = session()->get('role');
+        $dataJalur = $this->layoutModel->getDataJalur();
+
+        $data = [
+            'role' => $role,
+            'jalur' => $dataJalur,
+        ];
+        return view($role . '/stock', $data);
+    }
+
+    public function inputJalur()
+    {
+        $layout = $this->layoutModel;
+        $jalur = $this->request->getPost('jalur');
+        $kapasitas = $this->request->getPost('kapasitas');
+        $gd_setting = $this->request->getPost('gd_setting');
+        $ket = $this->request->getPost('ket');
+
+        $data = [
+            'jalur' => $jalur,
+            'jumlah_box' => $kapasitas,
+            'gd_setting' => $gd_setting,
+            'keterangan' => $ket,
+        ];
+
+        // Cek apakah jalur sudah ada
+        $existingJalur = $layout->where('jalur', $jalur)->first();
+
+        if ($existingJalur) {
+            // Jika jalur sudah ada, kembalikan dengan pesan error
+            return redirect()->to(base_url(session()->get('role') . '/stock/'))
+                ->withInput()
+                ->with('error', 'Jalur sudah ada, gagal membuat jalur.');
+        }
+
+        // Jika jalur belum ada, lanjutkan insert data
+        $insert = $layout->insert($data);
+
+        // Pastikan pengecekan insert menggunakan perbandingan dengan false
+        if ($insert !== false) {
+            return redirect()->to(base_url(session()->get('role') . '/stock/'))
+                ->withInput()
+                ->with('success', 'Berhasil Input Jalur Baru');
+        } else {
+            return redirect()->to(base_url(session()->get('role') . '/stock/'))
+                ->withInput()
+                ->with('error', 'Gagal Input Jalur Baru');
         }
     }
 }

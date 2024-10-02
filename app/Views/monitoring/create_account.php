@@ -31,9 +31,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Create Account</h5>
                     <!-- Small Modal -->
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createaccountModal">
-                        Create Account
-                    </button>
+                    <i class="bx bxs-user-plus" style="font-size: 28px;" data-bs-toggle="modal" data-bs-target="#createaccountModal"></i>
 
                     <div class="modal fade" id="createaccountModal" tabindex="-1">
                         <div class="modal-dialog modal-sm">

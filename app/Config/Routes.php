@@ -17,6 +17,8 @@ $routes->group('/monitoring', ['filter' => 'monitoring'], function ($routes) {
     $routes->get('', 'MonitoringController::index');
     $routes->get('account', 'MonitoringController::account');
     $routes->post('inputuser', 'MonitoringController::inputUser');
+    $routes->get('stock', 'MonitoringController::stock');
+    $routes->post('inputjalur', 'MonitoringController::inputJalur');
 });
 
 //gudang

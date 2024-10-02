@@ -183,7 +183,7 @@
                 </a>
                 <ul id="gudang-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
                     <li>
-                        <a href="<?= base_url('/' . $role . '/reportpengeluaran') ?>">
+                        <a href="<?= base_url('/' . $role . '/stock') ?>">
                             <i class="bi bi-circle"></i><span>Input Jalur Baru</span>
                         </a>
                     </li>

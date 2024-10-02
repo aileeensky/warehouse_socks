@@ -6,13 +6,13 @@ use CodeIgniter\Model;
 
 class LayoutModel extends Model
 {
-    protected $table            = 'layouts';
-    protected $primaryKey       = 'id';
+    protected $table            = 'layout';
+    protected $primaryKey       = 'jalur';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [];
+    protected $allowedFields    = ['jalur', 'jumlah_box', 'keterangan', 'gd_setting', 'status'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -43,4 +43,16 @@ class LayoutModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public function getDataJalur()
+    {
+        return $this->select('layout.jalur, (layout.jumlah_box - COALESCE(stock.box_stock, 0)) AS space, SUM(COALESCE(stock.qty_stock, 0)) AS qty_stock, SUM(COALESCE(stock.box_stock, 0)) AS box_stock, tabel_induk.no_model, layout.keterangan')
+            ->join('stock', 'layout.jalur = stock.jalur')
+            ->join('tabel_anak', 'stock.id_anak = tabel_anak.id_anak')
+            ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk')
+            ->where('layout.status <> FALSE')
+            ->groupBy('layout.jalur')
+            ->orderBy('layout.jalur', 'ASC')
+            ->findAll();
+    }
 }

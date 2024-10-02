@@ -26,12 +26,6 @@ class Stock extends Migration
             'updated_at' => [
                 'type' => 'DATETIME',
             ],
-            'stock_awal' => [
-                'type' => 'DOUBLE',
-            ],
-            'box_awal' => [
-                'type' => 'DOUBLE',
-            ],
             'qty_stock' => [
                 'type' => 'DOUBLE',
             ],
