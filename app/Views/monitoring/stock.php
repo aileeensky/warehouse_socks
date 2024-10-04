@@ -93,7 +93,6 @@
                                 <th scope="col">No Model</th>
                                 <th scope="col">Keterangan</th>
                                 <th scope="col">Edit</th>
-                                <th scope="col">Tambah</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -108,8 +107,7 @@
                                     <td><?= $data['box_stock'] ?></td>
                                     <td><?= $data['no_model'] ?></td>
                                     <td><?= $data['keterangan'] ?></td>
-                                    <td></td>
-                                    <td></td>
+                                    <td><i class="ri-edit-line"></td>
                                 </tr>
                             <?php
                                 $no++;

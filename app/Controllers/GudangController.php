@@ -202,11 +202,26 @@ class GudangController extends BaseController
     public function stock()
     {
         $role = session()->get('role');
+        $dataJalur = $this->layoutModel->getDataJalur();
 
         $data = [
             'role' => $role,
+            'jalur' => $dataJalur,
         ];
         return view($role . '/stock', $data);
+    }
+
+    public function detailStock($jalur)
+    {
+        $role = session()->get('role');
+        $dataStock = $this->stockModel->getDataStock($jalur);
+
+        $data = [
+            'role' => $role,
+            'stock' => $dataStock,
+            'jalur' => $jalur,
+        ];
+        return view($role . '/detailstock', $data);
     }
 
     public function dataPermintaan()

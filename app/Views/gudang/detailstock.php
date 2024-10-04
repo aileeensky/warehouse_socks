@@ -29,44 +29,35 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Stock Gudang</h5>
-                    <div style="display: flex; align-items: center;">
-                        <div class="col-md-2">
-                            <!-- Icon Excel -->
-                            <a class="nav-link collapsed" href="">
-                                <i class="ri-file-excel-line" style="font-size: 30px;"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <p></p>
+                    <h5 class="card-title"><?= $jalur ?></h5>
                     <!-- Table with stripped rows -->
                     <table class="table datatable">
                         <thead>
                             <tr>
                                 <th scope="col">No</th>
-                                <th scope="col">Jalur</th>
-                                <th scope="col">Space</th>
-                                <th scope="col">Qty Jalur</th>
-                                <th scope="col">Box</th>
                                 <th scope="col">No Model</th>
-                                <th scope="col">Keterangan</th>
-                                <th scope="col">Edit</th>
-                                <th scope="col">Tambah</th>
+                                <th scope="col">Area</th>
+                                <th scope="col">Inisial</th>
+                                <th scope="col">Style</th>
+                                <th scope="col">Warna</th>
+                                <th scope="col">Qty</th>
+                                <th scope="col">Box</th>
+                                <th scope="col">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                             $no = 1;
-                            foreach ($jalur as $data) : ?>
+                            foreach ($stock as $data) : ?>
                                 <tr>
                                     <th scope="row"><?= $no ?></th>
-                                    <td><?= $data['jalur'] ?></td>
-                                    <td><?= $data['space'] ?></td>
+                                    <td><?= $data['no_model'] ?></td>
+                                    <td><?= $data['area'] ?></td>
+                                    <td><?= $data['inisial'] ?></td>
+                                    <td><?= $data['style'] ?></td>
+                                    <td><?= $data['warna'] ?></td>
                                     <td><?= $data['qty_stock'] ?></td>
                                     <td><?= $data['box_stock'] ?></td>
-                                    <td><?= $data['no_model'] ?></td>
-                                    <td><?= $data['keterangan'] ?></td>
-                                    <td><a href="<?= base_url('/' . $role . '/detailstock/' . $data['jalur']) ?>"><i class="ri-edit-line"></a></td>
                                     <td><i class="bx bx-plus-medical"></i></td>
                                 </tr>
                             <?php

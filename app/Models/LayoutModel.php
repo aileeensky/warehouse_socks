@@ -47,10 +47,10 @@ class LayoutModel extends Model
     public function getDataJalur()
     {
         return $this->select('layout.jalur, (layout.jumlah_box - COALESCE(stock.box_stock, 0)) AS space, SUM(COALESCE(stock.qty_stock, 0)) AS qty_stock, SUM(COALESCE(stock.box_stock, 0)) AS box_stock, tabel_induk.no_model, layout.keterangan')
-            ->join('stock', 'layout.jalur = stock.jalur')
-            ->join('tabel_anak', 'stock.id_anak = tabel_anak.id_anak')
-            ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk')
-            ->where('layout.status <> FALSE')
+            ->join('stock', 'layout.jalur = stock.jalur', 'left') // left join agar tetap menampilkan jalur walau stock kosong
+            ->join('tabel_anak', 'stock.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
+            ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
+            // ->where('layout.status <> FALSE')
             ->groupBy('layout.jalur')
             ->orderBy('layout.jalur', 'ASC')
             ->findAll();
