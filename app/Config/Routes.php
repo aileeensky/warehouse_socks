@@ -28,6 +28,8 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->post('importdatabase', 'GudangController::importDatabase');
     $routes->get('stock', 'GudangController::stock');
     $routes->get('stockmodal/(:num)', 'GudangController::getStockModal/$1');
+    $routes->get('getidanak/(:num)', 'GudangController::getStockModal/$1');
+    $routes->post('inputstock', 'GudangController::inputStock');
     $routes->get('detailstock/(:any)', 'GudangController::detailStock/$1');
     $routes->get('datapermintaan', 'GudangController::dataPermintaan');
     $routes->get('dataterkirim', 'GudangController::dataTerkirim');

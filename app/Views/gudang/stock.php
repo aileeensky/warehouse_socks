@@ -106,9 +106,10 @@
                                         </div>
                                         <div class="col-12">
                                             <label for="inisial" class="form-label">Inisial</label>
-                                            <select class="form-select" name="inisial" aria-label="Default select example">
+                                            <select class="form-select" name="inisial" aria-label="Default select example" onchange="getIdAnak()">
                                                 <option selected></option>
                                             </select>
+                                            <input type="text" name="id_anak" readonly>
                                         </div>
                                         <div class="col-12">
                                             <label for="qty" class="form-label">Qty Stock</label>
@@ -172,13 +173,9 @@
                     // Parse response JSON
                     var response = JSON.parse(xhr.responseText);
 
-                    // Isi form dengan data yang diterima
-                    document.querySelector('input[name="area"]').value = response.area;
-                    document.querySelector('select[name="inisial"]').value = response.inisial;
-                    // document.querySelector('input[name="area"]').value = 'aaa';
-                    // document.querySelector('select[name="inisial"]').value = 'iii';
-
                     // Kosongkan opsi area dan inisial sebelumnya
+                    var areaSelect = document.querySelector('select[name="area"]');
+                    var inisialSelect = document.querySelector('select[name="inisial"]');
                     areaSelect.innerHTML = '<option selected></option>';
                     inisialSelect.innerHTML = '<option selected></option>';
 
@@ -200,6 +197,31 @@
                 }
             };
             xhr.send();
+        }
+    }
+
+    function getIdAnak() {
+        let selectedInisial = document.querySelector('select[name="inisial"]').value;
+
+        if (selectedNoModel !== "" && selectedInisial !== "") {
+            // Lakukan request Ajax untuk mendapatkan id_anak berdasarkan no_model dan inisial
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "<?= base_url('/' . $role . '/getidanak/') ?>", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var response = JSON.parse(xhr.responseText);
+
+                    if (response.id_anak) {
+                        // Masukkan ID Anak ke input text
+                        document.querySelector('input[name="id_anak"]').value = response.id_anak;
+                    } else {
+                        console.log("ID Anak tidak ditemukan.");
+                        document.querySelector('input[name="id_anak"]').value = ""; // Kosongkan jika tidak ada id
+                    }
+                }
+            };
+            xhr.send("no_model=" + selectedNoModel + "&inisial=" + selectedInisial);
         }
     }
 </script>
