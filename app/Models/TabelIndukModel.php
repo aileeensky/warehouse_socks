@@ -50,4 +50,10 @@ class TabelIndukModel extends Model
             ->where('no_model', $nomodel)
             ->first();
     }
+
+    public function selectNomodel()
+    {
+        return $this->select('id_induk, no_model')
+            ->findAll();
+    }
 }

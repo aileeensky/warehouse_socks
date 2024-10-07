@@ -42,7 +42,7 @@
                                             <h5 class="modal-title"><i></i>Input Jalur</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
-                                        <form class="row g-3" action="<?= base_url('/' . $role . '/inputjalur') ?>" method="post">
+                                        <form action="<?= base_url('/' . $role . '/inputjalur') ?>" method="post">
                                             <div class="modal-body">
                                                 <div class="col-12">
                                                     <label for="jalur" class="form-label">Jalur</label>

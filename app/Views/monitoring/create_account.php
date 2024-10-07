@@ -113,7 +113,7 @@
                                     <h5 class="modal-title">Create Account</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <form class="row g-3" action="<?= base_url('/' . $role . '/inputuser') ?>" method="post">
+                                <form action="<?= base_url('/' . $role . '/inputuser') ?>" method="post">
                                     <div class="modal-body">
                                         <div class="col-12">
                                             <label for="nama" class="form-label">Nama</label>

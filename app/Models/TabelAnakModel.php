@@ -52,4 +52,13 @@ class TabelAnakModel extends Model
             ->orderBy('tabel_anak.waktu_input', 'DESC')
             ->findAll();
     }
+
+    public function getData($id_induk)
+    {
+        return $this->select('area, inisial, style')
+            ->join('tabel_induk', 'tabel_anak.id_induk = tabel_induk.id_induk', 'left')
+            ->where('tabel_induk.id_induk', $id_induk)
+            ->orderBy('tabel_anak.inisial', 'ASC')
+            ->findAll();
+    }
 }

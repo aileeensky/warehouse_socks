@@ -203,12 +203,28 @@ class GudangController extends BaseController
     {
         $role = session()->get('role');
         $dataJalur = $this->layoutModel->getDataJalur();
+        $dataNomodel = $this->indukModel->selectNomodel();
 
         $data = [
             'role' => $role,
             'jalur' => $dataJalur,
+            'pdk' => $dataNomodel,
         ];
         return view($role . '/stock', $data);
+    }
+
+    public function getStockModal($id)
+    {
+        // Misal ambil data dari database berdasarkan no_model (id_induk)
+        $dataAnak = $this->anakModel->find($id);
+
+        $responseData = [
+            'area' => $dataAnak['area'],      // Pastikan 'area' sesuai dengan field di database
+            'inisial' => $dataAnak['inisial'] // Pastikan 'inisial' sesuai dengan field di database
+        ];
+
+        // Kirim response sebagai JSON
+        return $this->response->setJSON($responseData);
     }
 
     public function detailStock($jalur)

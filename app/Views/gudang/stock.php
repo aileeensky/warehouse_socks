@@ -67,7 +67,7 @@
                                     <td><?= $data['no_model'] ?></td>
                                     <td><?= $data['keterangan'] ?></td>
                                     <td><a href="<?= base_url('/' . $role . '/detailstock/' . $data['jalur']) ?>"><i class="ri-edit-line"></a></td>
-                                    <td><i class="bx bx-plus-medical"></i></td>
+                                    <td><i class="bx bx-plus-medical" data-bs-toggle="modal" data-bs-target="#inputstockModal" data-jalur="<?= $data['jalur'] ?>" data-no_model="<?= $data['no_model'] ?>" data-space="<?= $data['space'] ?>"></i></td>
                                 </tr>
                             <?php
                                 $no++;
@@ -75,11 +75,133 @@
                         </tbody>
                     </table>
                     <!-- End Table with stripped rows -->
-
+                    <!-- Basic Modal -->
+                    <div class="modal fade" id="inputstockModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Input Stock</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form action="<?= base_url('/' . $role . '/inputstock') ?>" method="post">
+                                    <div class="modal-body">
+                                        <div class="col-12">
+                                            <label for="jalur" class="form-label">Jalur</label>
+                                            <input type="text" class="form-control" name="jalur" readonly>
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="no_model" class="form-label">No Model</label>
+                                            <select class="form-select" name="no_model" aria-label="Default select example" onchange="selectModel()">
+                                                <option selected></option>
+                                                <?php foreach ($pdk as $data) : ?>
+                                                    <option value="<?= $data['id_induk'] ?>"><?= $data['no_model'] ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="area" class="form-label">Area</label>
+                                            <select class="form-select" name="area" aria-label="Default select example">
+                                                <option selected></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="inisial" class="form-label">Inisial</label>
+                                            <select class="form-select" name="inisial" aria-label="Default select example">
+                                                <option selected></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="qty" class="form-label">Qty Stock</label>
+                                            <input type="text" class="form-control" name="qty">
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="box" class="form-label">Box</label>
+                                            <input type="text" class="form-control" name="box">
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="keterangan" class="form-label">Keterangan</label>
+                                            <textarea class="form-control" name="keterangan"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div><!-- End Basic Modal-->
                 </div>
             </div>
 
         </div>
     </div>
 </section>
+<script>
+    const inputStockModal = document.getElementById('inputstockModal');
+    inputStockModal.addEventListener('show.bs.modal', function(event) {
+        // Tombol yang memicu modal
+        const button = event.relatedTarget;
+
+        // Ambil data dari atribut data-*
+        const jalur = button.getAttribute('data-jalur');
+        const noModel = button.getAttribute('data-no_model');
+        const space = button.getAttribute('data-space');
+
+        // Isi input di dalam modal dengan nilai dari atribut
+        const inputJalur = inputStockModal.querySelector('input[name="jalur"]');
+        const inputNoModel = inputStockModal.querySelector('input[name="no_model"]');
+        const inputSpace = inputStockModal.querySelector('input[name="space"]');
+
+        inputJalur.value = jalur;
+        inputNoModel.value = noModel;
+        inputSpace.value = space;
+    });
+
+    function selectModel() {
+        // Ambil value dari select no_model
+        var noModelId = document.querySelector('select[name="no_model"]').value;
+
+        // Cek apakah no_model telah dipilih
+        if (noModelId !== "") {
+            // Lakukan request Ajax ke server
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "<?= base_url('/' . $role . '/stockmodal/') ?>" + noModelId, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    // Parse response JSON
+                    var response = JSON.parse(xhr.responseText);
+
+                    // Isi form dengan data yang diterima
+                    document.querySelector('input[name="area"]').value = response.area;
+                    document.querySelector('select[name="inisial"]').value = response.inisial;
+                    // document.querySelector('input[name="area"]').value = 'aaa';
+                    // document.querySelector('select[name="inisial"]').value = 'iii';
+
+                    // Kosongkan opsi area dan inisial sebelumnya
+                    areaSelect.innerHTML = '<option selected></option>';
+                    inisialSelect.innerHTML = '<option selected></option>';
+
+                    // Tambahkan opsi untuk area
+                    response.area.forEach(function(area) {
+                        var option = document.createElement('option');
+                        option.value = area;
+                        option.text = area;
+                        areaSelect.appendChild(option);
+                    });
+
+                    // Tambahkan opsi untuk inisial
+                    response.inisial.forEach(function(inisial) {
+                        var option = document.createElement('option');
+                        option.value = inisial;
+                        option.text = inisial;
+                        inisialSelect.appendChild(option);
+                    });
+                }
+            };
+            xhr.send();
+        }
+    }
+</script>
+
 <?php $this->endSection(); ?>
