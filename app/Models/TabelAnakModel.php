@@ -55,7 +55,7 @@ class TabelAnakModel extends Model
 
     public function getData($id_induk)
     {
-        return $this->select('area, inisial, style')
+        return $this->select('id_anak, area, inisial, style')
             ->join('tabel_induk', 'tabel_anak.id_induk = tabel_induk.id_induk', 'left')
             ->where('tabel_induk.id_induk', $id_induk)
             ->orderBy('tabel_anak.inisial', 'ASC')

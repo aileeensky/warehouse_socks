@@ -201,6 +201,7 @@ class GudangController extends BaseController
 
     public function stock()
     {
+        $admin = session()->get('username');
         $role = session()->get('role');
         $dataJalur = $this->layoutModel->getDataJalur();
         $dataNomodel = $this->indukModel->selectNomodel();
@@ -209,95 +210,94 @@ class GudangController extends BaseController
             'role' => $role,
             'jalur' => $dataJalur,
             'pdk' => $dataNomodel,
+            'admin' => $admin,
         ];
         return view($role . '/stock', $data);
     }
 
     public function getStockModal($id)
     {
-        // Ambil data dari model
         $dataAnak = $this->anakModel->getData($id);
 
-        // Cek jika data ditemukan
         if ($dataAnak) {
-            // Format respons sebagai array area dan inisial
             $area = [];
             $inisial = [];
 
             foreach ($dataAnak as $row) {
-                $area[] = $row['area'];       // Kumpulkan area
-                $inisial[] = $row['inisial']; // Kumpulkan inisial
+                $area[] = $row['area'];
+                $inisial[] = ['id_anak' => $row['id_anak'], 'inisial' => $row['inisial']]; // Tambahkan id_anak dan inisial
             }
 
             $responseData = [
-                'area' => array_unique($area),       // Menghilangkan duplikat
-                'inisial' => array_unique($inisial), // Menghilangkan duplikat
+                'area' => array_unique($area),
+                'inisial' => $inisial, // Kirim array dengan id_anak dan inisial
             ];
 
-            // Kirim response sebagai JSON
             return $this->response->setJSON($responseData);
         }
 
-        // Jika tidak ada data, kirim response kosong
         return $this->response->setJSON(['area' => [], 'inisial' => []]);
     }
 
-    public function getIdAnak()
-    {
-        // Ambil data no_model dan inisial dari POST request
-        $no_model = $this->request->getPost('no_model');
-        $inisial = $this->request->getPost('inisial');
-
-        // Cari data anak berdasarkan no_model dan inisial
-        $dataAnak = $this->anakModel->where('id_induk', $no_model)
-            ->where('inisial', $inisial)
-            ->first();
-
-        // Kirim response sebagai JSON
-        if ($dataAnak) {
-            return $this->response->setJSON(['id_anak' => $dataAnak['id_anak']]);
-        } else {
-            return $this->response->setJSON(['id_anak' => null]);
-        }
-    }
 
     public function inputStock()
     {
-        $stock = $this->pemasukanModel;
+        $now = date('Y-m-d H:i:s');
+        $pemasukan = $this->pemasukanModel;
+        $stock = $this->stockModel;
         $jalur = $this->request->getPost('jalur');
-        $kapasitas = $this->request->getPost('kapasitas');
+        $id_anak = $this->request->getPost('id_anak');
+        $qty_masuk = $this->request->getPost('qty_masuk');
+        $box_masuk = $this->request->getPost('box_masuk');
         $gd_setting = $this->request->getPost('gd_setting');
-        $ket = $this->request->getPost('ket');
+        $ket_masuk = $this->request->getPost('keterangan');
+        $admin = $this->request->getPost('admin');
 
         $data = [
+            'created_at' => $now,
             'jalur' => $jalur,
-            'jumlah_box' => $kapasitas,
+            'id_anak' => $id_anak,
+            'qty_stock' => 0,
+            'box_stock' => 0,
             'gd_setting' => $gd_setting,
-            'keterangan' => $ket,
+            'ket_stock' => $ket_masuk,
+            'admin' => $admin,
         ];
 
-        // Cek apakah jalur sudah ada
-        $existingJalur = $stock->where('jalur', $jalur)->first();
+        // Cek apakah stock di jalur sudah ada
+        $existingJalur = $stock->where([
+            'id_anak' => $id_anak,
+            'jalur' => $jalur
+        ])->first();
 
-        if ($existingJalur) {
-            // Jika jalur sudah ada, kembalikan dengan pesan error
-            return redirect()->to(base_url(session()->get('role') . '/stock/'))
-                ->withInput()
-                ->with('error', 'Jalur sudah ada, gagal membuat jalur.');
+
+        if (!$existingJalur) {
+            $insertStock = $stock->insert($data);
         }
 
+        $data2 = [
+            'created_at' => $now,
+            'jalur' => $jalur,
+            'id_anak' => $id_anak,
+            'qty_masuk' => $qty_masuk,
+            'box_masuk' => $box_masuk,
+            'gd_setting' => $gd_setting,
+            'ket_masuk' => $ket_masuk,
+            'admin' => $admin,
+        ];
+
         // Jika jalur belum ada, lanjutkan insert data
-        $insert = $stock->insert($data);
+        $insertPemasukan = $pemasukan->insert($data2);
 
         // Pastikan pengecekan insert menggunakan perbandingan dengan false
-        if ($insert !== false) {
+        if ($insertPemasukan !== false) {
             return redirect()->to(base_url(session()->get('role') . '/stock/'))
                 ->withInput()
-                ->with('success', 'Berhasil Input Jalur Baru');
+                ->with('success', 'Berhasil Input Pemasukan');
         } else {
             return redirect()->to(base_url(session()->get('role') . '/stock/'))
                 ->withInput()
-                ->with('error', 'Gagal Input Jalur Baru');
+                ->with('error', 'Gagal Input Pemasukan');
         }
     }
 

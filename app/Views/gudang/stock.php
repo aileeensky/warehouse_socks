@@ -85,6 +85,7 @@
                                 </div>
                                 <form action="<?= base_url('/' . $role . '/inputstock') ?>" method="post">
                                     <div class="modal-body">
+                                        <input type="hidden" name="admin" value="<?= $admin ?>">
                                         <div class="col-12">
                                             <label for="jalur" class="form-label">Jalur</label>
                                             <input type="text" class="form-control" name="jalur" readonly>
@@ -106,18 +107,25 @@
                                         </div>
                                         <div class="col-12">
                                             <label for="inisial" class="form-label">Inisial</label>
-                                            <select class="form-select" name="inisial" aria-label="Default select example" onchange="getIdAnak()">
+                                            <select class="form-select" name="inisial" aria-label="Default select example">
                                                 <option selected></option>
                                             </select>
-                                            <input type="text" name="id_anak" readonly>
+                                            <input type="hidden" name="id_anak" readonly>
                                         </div>
                                         <div class="col-12">
-                                            <label for="qty" class="form-label">Qty Stock</label>
-                                            <input type="text" class="form-control" name="qty">
+                                            <label for="qty_masuk" class="form-label">Qty Stock</label>
+                                            <input type="text" class="form-control" name="qty_masuk">
                                         </div>
                                         <div class="col-12">
-                                            <label for="box" class="form-label">Box</label>
-                                            <input type="text" class="form-control" name="box">
+                                            <label for="box_masuk" class="form-label">Box</label>
+                                            <input type="text" class="form-control" name="box_masuk">
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="gd_setting" class="form-label">Gd Setting</label>
+                                            <select class="form-select" name="gd_setting" aria-label="Default select example">
+                                                <option selected></option>
+                                                <option>GD SETTING</option>
+                                            </select>
                                         </div>
                                         <div class="col-12">
                                             <label for="keterangan" class="form-label">Keterangan</label>
@@ -126,7 +134,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary">Save</button>
+                                        <button type="submit" class="btn btn-primary">Save</button>
                                     </div>
                                 </form>
                             </div>
@@ -160,26 +168,21 @@
     });
 
     function selectModel() {
-        // Ambil value dari select no_model
         var noModelId = document.querySelector('select[name="no_model"]').value;
 
-        // Cek apakah no_model telah dipilih
         if (noModelId !== "") {
-            // Lakukan request Ajax ke server
             var xhr = new XMLHttpRequest();
             xhr.open("GET", "<?= base_url('/' . $role . '/stockmodal/') ?>" + noModelId, true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == 4 && xhr.status == 200) {
-                    // Parse response JSON
                     var response = JSON.parse(xhr.responseText);
 
-                    // Kosongkan opsi area dan inisial sebelumnya
                     var areaSelect = document.querySelector('select[name="area"]');
                     var inisialSelect = document.querySelector('select[name="inisial"]');
+                    var idAnakInput = document.querySelector('input[name="id_anak"]');
                     areaSelect.innerHTML = '<option selected></option>';
                     inisialSelect.innerHTML = '<option selected></option>';
 
-                    // Tambahkan opsi untuk area
                     response.area.forEach(function(area) {
                         var option = document.createElement('option');
                         option.value = area;
@@ -187,41 +190,21 @@
                         areaSelect.appendChild(option);
                     });
 
-                    // Tambahkan opsi untuk inisial
-                    response.inisial.forEach(function(inisial) {
+                    response.inisial.forEach(function(item) {
                         var option = document.createElement('option');
-                        option.value = inisial;
-                        option.text = inisial;
+                        option.value = item.id_anak; // Set value ke id_anak
+                        option.text = item.inisial; // Tampilkan teks sebagai inisial
                         inisialSelect.appendChild(option);
+                    });
+
+                    // Update id_anak saat inisial dipilih
+                    inisialSelect.addEventListener('change', function() {
+                        var selectedOption = inisialSelect.options[inisialSelect.selectedIndex];
+                        idAnakInput.value = selectedOption.value; // Set value id_anak ke input
                     });
                 }
             };
             xhr.send();
-        }
-    }
-
-    function getIdAnak() {
-        let selectedInisial = document.querySelector('select[name="inisial"]').value;
-
-        if (selectedNoModel !== "" && selectedInisial !== "") {
-            // Lakukan request Ajax untuk mendapatkan id_anak berdasarkan no_model dan inisial
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "<?= base_url('/' . $role . '/getidanak/') ?>", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    var response = JSON.parse(xhr.responseText);
-
-                    if (response.id_anak) {
-                        // Masukkan ID Anak ke input text
-                        document.querySelector('input[name="id_anak"]').value = response.id_anak;
-                    } else {
-                        console.log("ID Anak tidak ditemukan.");
-                        document.querySelector('input[name="id_anak"]').value = ""; // Kosongkan jika tidak ada id
-                    }
-                }
-            };
-            xhr.send("no_model=" + selectedNoModel + "&inisial=" + selectedInisial);
         }
     }
 </script>

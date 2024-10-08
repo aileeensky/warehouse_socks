@@ -12,7 +12,7 @@ class StockModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['id_stock', 'id_anak', 'ceated_at', 'update_at', 'qty_stock', 'box_stock', 'jalur', 'gd_setting', 'ket_stock', 'admin'];
+    protected $allowedFields    = ['id_stock', 'id_anak', 'created_at', 'update_at', 'qty_stock', 'box_stock', 'jalur', 'gd_setting', 'ket_stock', 'admin'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
