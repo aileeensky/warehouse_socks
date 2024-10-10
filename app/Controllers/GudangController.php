@@ -246,6 +246,7 @@ class GudangController extends BaseController
         $pemasukan = $this->pemasukanModel;
         $stock = $this->stockModel;
         $jalur = $this->request->getPost('jalur');
+        $space = $this->request->getPost('space');
         $id_anak = $this->request->getPost('id_anak');
         $qty_masuk = $this->request->getPost('qty_masuk');
         $box_masuk = $this->request->getPost('box_masuk');
@@ -264,12 +265,17 @@ class GudangController extends BaseController
             'admin' => $admin,
         ];
 
-        // Cek apakah stock di jalur sudah ada
-        $existingJalur = $stock->where([
-            'id_anak' => $id_anak,
-            'jalur' => $jalur
-        ])->first();
-
+        if ($space > 0 && $space >= $box_masuk) {
+            // Cek apakah stock di jalur sudah ada
+            $existingJalur = $stock->where([
+                'id_anak' => $id_anak,
+                'jalur' => $jalur
+            ])->first();
+        } else {
+            return redirect()->to(base_url(session()->get('role') . '/stock/'))
+                ->withInput()
+                ->with('error', 'Qty Box Melebihi Kapasitas Jalur!');
+        }
 
         if (!$existingJalur) {
             $insertStock = $stock->insert($data);

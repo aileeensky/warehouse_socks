@@ -45,6 +45,7 @@
                             <tr>
                                 <th scope="col">No</th>
                                 <th scope="col">Jalur</th>
+                                <th scope="col">Kapasitas</th>
                                 <th scope="col">Space</th>
                                 <th scope="col">Qty Jalur</th>
                                 <th scope="col">Box</th>
@@ -61,6 +62,7 @@
                                 <tr>
                                     <th scope="row"><?= $no ?></th>
                                     <td><?= $data['jalur'] ?></td>
+                                    <td><?= $data['jumlah_box'] ?></td>
                                     <td><?= $data['space'] ?></td>
                                     <td><?= $data['qty_stock'] ?></td>
                                     <td><?= $data['box_stock'] ?></td>
@@ -89,6 +91,10 @@
                                         <div class="col-12">
                                             <label for="jalur" class="form-label">Jalur</label>
                                             <input type="text" class="form-control" name="jalur" readonly>
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="space" class="form-label">Space</label>
+                                            <input type="text" class="form-control" name="space" value="<?= $data['space'] ?>" readonly>
                                         </div>
                                         <div class="col-12">
                                             <label for="no_model" class="form-label">No Model</label>
@@ -159,7 +165,7 @@
 
         // Isi input di dalam modal dengan nilai dari atribut
         const inputJalur = inputStockModal.querySelector('input[name="jalur"]');
-        const inputNoModel = inputStockModal.querySelector('input[name="no_model"]');
+        const inputNoModel = inputStockModal.querySelector('select[name="no_model"]');
         const inputSpace = inputStockModal.querySelector('input[name="space"]');
 
         inputJalur.value = jalur;

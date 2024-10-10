@@ -35,3 +35,9 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->get('reportpemasukan', 'GudangController::reportPemasukan');
     $routes->get('reportpengeluaran', 'GudangController::reportPengeluaran');
 });
+
+//packing
+$routes->group('/packing', ['filter' => 'packing'], function ($routes) {
+    $routes->get('', 'PackingController::index');
+    $routes->get('stock', 'PackingController::stock');
+});
