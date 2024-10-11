@@ -40,4 +40,6 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
 $routes->group('/packing', ['filter' => 'packing'], function ($routes) {
     $routes->get('', 'PackingController::index');
     $routes->get('stock', 'PackingController::stock');
+    $routes->post('inputpermintaan', 'PackingController::inputPermintaan');
+    $routes->get('schedule', 'PackingController::schedulePacking');
 });

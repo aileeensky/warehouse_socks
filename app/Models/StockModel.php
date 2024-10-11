@@ -59,7 +59,7 @@ class StockModel extends Model
     public function getAllStock()
     {
         $now = date('Y-m-d');
-        return $this->select('layout.jalur, stock.gd_setting, SUM(COALESCE(stock.qty_stock, 0)) AS qty_stock, SUM(COALESCE(stock.box_stock, 0)) AS box_stock, tabel_induk.no_model, tabel_induk.kode_buyer, tabel_induk.smv, tabel_induk.delivery, tabel_anak.id_anak, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, tabel_anak.qty_po_inisial, pengeluaran.qty_keluar')
+        return $this->select('layout.jalur, stock.gd_setting, SUM(COALESCE(stock.qty_stock, 0)) AS qty_stock,(tabel_anak.qty_po_inisial - COALESCE(pengeluaran.qty_keluar, 0)) AS sisa_jatah, SUM(COALESCE(stock.box_stock, 0)) AS box_stock, tabel_induk.no_model, tabel_induk.kode_buyer, tabel_induk.smv, tabel_induk.delivery, tabel_anak.id_anak, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, tabel_anak.qty_po_inisial, pengeluaran.qty_keluar')
             ->join('layout', 'layout.jalur = stock.jalur', 'left') // left join agar tetap menampilkan jalur walau stock kosong
             ->join('tabel_anak', 'stock.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
             ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk

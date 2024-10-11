@@ -70,8 +70,8 @@
                                     <td><?= $data['warna'] ?></td>
                                     <td><input type="hidden" value="<?= $data['qty_po_inisial'] ?>"><?= $data['delivery'] ?></td>
                                     <td><input type="hidden" value="<?= $data['qty_keluar'] ?? 0 ?>"><?= $data['qty_stock'] ?></td>
-                                    <td><?= $data['box_stock'] ?></td>
-                                    <td><i class="bx bx-plus-medical" data-bs-toggle="modal" data-bs-target="#scheduleModal" data-gd_setting="<?= $data['gd_setting'] ?>" data-no_model="<?= $data['no_model'] ?>" data-area="<?= $data['area'] ?>" data-smv="<?= $data['smv'] ?>" data-id_anak="<?= $data['id_anak'] ?>" data-inisial="<?= $data['inisial'] ?>" data-style="<?= $data['style'] ?>" data-warna="<?= $data['warna'] ?>" data-delivery="<?= $data['delivery'] ?>" data-qty_po="<?= $data['qty_po_inisial'] ?>" data-qty_stock="<?= $data['qty_stock'] ?>" data-box_stock="<?= $data['box_stock'] ?>" data-qty_kirim="<?= $data['qty_keluar'] ?? 0 ?>"></i></td>
+                                    <td><input type="hidden" value="<?= $data['sisa_jatah'] ?? 0 ?>"><?= $data['box_stock'] ?></td>
+                                    <td><i class="bx bx-plus-medical" data-bs-toggle="modal" data-bs-target="#scheduleModal" data-gd_setting="<?= $data['gd_setting'] ?>" data-no_model="<?= $data['no_model'] ?>" data-area="<?= $data['area'] ?>" data-smv="<?= $data['smv'] ?>" data-id_anak="<?= $data['id_anak'] ?>" data-inisial="<?= $data['inisial'] ?>" data-style="<?= $data['style'] ?>" data-warna="<?= $data['warna'] ?>" data-delivery="<?= $data['delivery'] ?>" data-qty_po="<?= $data['qty_po_inisial'] ?>" data-sisa_jatah="<?= $data['sisa_jatah'] ?>" data-qty_stock="<?= $data['qty_stock'] ?>" data-box_stock="<?= $data['box_stock'] ?>" data-qty_kirim="<?= $data['qty_keluar'] ?? 0 ?>"></i></td>
                                 </tr>
                             <?php
                                 $no++;
@@ -87,7 +87,7 @@
                                     <h5 class="modal-title">Create Schedule Packing</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <form action="<?= base_url('/' . $role . '/inputstock') ?>" method="post">
+                                <form action="<?= base_url('/' . $role . '/inputpermintaan') ?>" method="post">
                                     <div class="modal-body">
                                         <input type="hidden" name="admin" value="<?= $admin ?>">
                                         <div class="col-12">
@@ -113,7 +113,7 @@
                                         </div>
                                         <div class="col-12">
                                             <label for="smv" class="form-label">SMV</label>
-                                            <input type="text" class="form-control" name="smv" readonly>
+                                            <input type="text" class="form-control" name="smv" id="smv" readonly onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="qty_po" class="form-label">Qty Po</label>
@@ -128,24 +128,32 @@
                                             <input type="text" class="form-control" name="qty_kirim" readonly>
                                         </div>
                                         <div class="col-12">
+                                            <label for="sisa_jatah" class="form-label">Sisa Jatah</label>
+                                            <input type="text" class="form-control" name="sisa_jatah" id="sisa_jatah" readonly>
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="tgl_jalan" class="form-label">Tgl Jalan Packing</label>
+                                            <input type="date" class="form-control" name="tgl_jalan">
+                                        </div>
+                                        <div class="col-12">
                                             <label for="wh" class="form-label">Working Hours</label>
-                                            <input type="text" class="form-control" name="wh">
+                                            <input type="text" class="form-control" name="wh" id="wh" onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="eff" class="form-label">Effisiency(%)</label>
-                                            <input type="text" class="form-control" name="eff">
+                                            <input type="text" class="form-control" name="eff" id="eff" onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="direct" class="form-label">Direct</label>
-                                            <input type="text" class="form-control" name="direct">
+                                            <input type="text" class="form-control" name="direct" id="direct" onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="kapasitas" class="form-label">Kapasitas</label>
-                                            <input type="text" class="form-control" name="kapasitas" readonly>
+                                            <input type="text" class="form-control" name="kapasitas" id="kapasitas" readonly onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="qty_minta" class="form-label">Qty Minta(dz)</label>
-                                            <input type="text" class="form-control" name="qty_minta">
+                                            <input type="text" class="form-control" name="qty_minta" id="qty_minta" onkeyup="hitung()">
                                         </div>
                                         <div class="col-12">
                                             <label for="ket_pck" class="form-label">Keterangan Packing</label>
@@ -182,6 +190,7 @@
         const inisial = button.getAttribute('data-inisial');
         const delivery = button.getAttribute('data-delivery');
         const qtyPo = button.getAttribute('data-qty_po');
+        const sisaJatah = button.getAttribute('data-sisa_jatah');
         const qtyStock = button.getAttribute('data-qty_stock');
         const boxStock = button.getAttribute('data-box_stock');
         const qtyKirim = button.getAttribute('data-qty_kirim');
@@ -195,6 +204,7 @@
         const inputInisial = scheduleModal.querySelector('input[name="inisial"]');
         const inputDelivery = scheduleModal.querySelector('input[name="delivery"]');
         const inputQtyPo = scheduleModal.querySelector('input[name="qty_po"]');
+        const inputSisaJatah = scheduleModal.querySelector('input[name="sisa_jatah"]');
         const inputQtyStock = scheduleModal.querySelector('input[name="qty_stock"]');
         const inputBoxStock = scheduleModal.querySelector('input[name="box_stock"]');
         const inputQtyKirim = scheduleModal.querySelector('input[name="qty_kirim"]');
@@ -207,6 +217,7 @@
         inputInisial.value = inisial;
         inputDelivery.value = delivery;
         inputQtyPo.value = qtyPo;
+        inputSisaJatah.value = sisaJatah;
         inputQtyStock.value = qtyStock;
         inputBoxStock.value = boxStock;
         inputQtyKirim.value = qtyKirim;
@@ -227,6 +238,31 @@
         }
         if (isNaN(result)) {
             document.getElementById('kapasitas').value = "";
+        }
+    }
+
+    function hitung() {
+        var minta = parseFloat(document.getElementById('qty_minta').value) || 0;
+        var kaps = parseFloat(document.getElementById('kapasitas').value) || 0;
+        // Hapus karakter koma dari sisa_jatah sebelum parsing
+        var sisaJatahRaw = document.getElementById('sisa_jatah').value.replace(/,/g, '');
+        var sisa_jatah = parseFloat(sisaJatahRaw) || 0;
+
+        console.log("Qty Minta: ", minta);
+        console.log("Kapasitas: ", kaps);
+        console.log("Sisa Jatah: ", sisa_jatah);
+
+        if (isNaN(sisa_jatah) || sisa_jatah <= 0) {
+            console.log("Sisa jatah tidak valid atau belum diisi.");
+            return;
+        }
+
+        if (minta > kaps) {
+            alert("JUMLAH QTY MINTA TIDAK BOLEH MELEBIHI KAPASITAS!");
+            document.getElementById('qty_minta').value = 0;
+        } else if (parseFloat(minta) > parseFloat(sisa_jatah)) {
+            alert("JUMLAH QTY MINTA TIDAK BOLEH MELEBIHI QTY SISA JATAH !");
+            document.getElementById('qty_minta').value = 0;
         }
     }
 </script>

@@ -178,7 +178,7 @@
             </li><!-- End Forms Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/datapermintaan') ?>">
+                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/schedule') ?>">
                     <i class="bi bi-calendar2-week"></i><span>Schedule</span>
                 </a>
             </li><!-- End Tables Nav -->

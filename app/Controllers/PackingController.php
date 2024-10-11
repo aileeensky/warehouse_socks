@@ -74,4 +74,64 @@ class PackingController extends BaseController
         ];
         return view($role . '/stock', $data);
     }
+
+    public function inputPermintaan()
+    {
+        $now = date('Y-m-d H:i:s');
+        $permintaan = $this->permintaanModel;
+        $idAnak = $this->request->getPost('id_anak');
+        $areaPck = $this->request->getPost('admin');
+        $gdSetting = $this->request->getPost('gd_setting');
+        $tglJalan = $this->request->getPost('tgl_jalan');
+        $wh = $this->request->getPost('wh');
+        $eff = $this->request->getPost('eff');
+        $direct = $this->request->getPost('direct');
+        $kapasitas = $this->request->getPost('kapasitas');
+        $qtyMinta = $this->request->getPost('qty_minta');
+        $ketPck = $this->request->getPost('ket_pck');
+        $admin = $this->request->getPost('admin');
+
+        $data = [
+            'created_at' => $now,
+            'id_anak' => $idAnak,
+            'area_packing' => $areaPck,
+            'gd_setting' => $gdSetting,
+            'tgl_jalan' => $tglJalan,
+            'wh' => $wh,
+            'eff' => $eff,
+            'direct' => $direct,
+            'kapasitas' => $kapasitas,
+            'qty_minta' => $qtyMinta,
+            'ket_packing' => $ketPck,
+            'admin' => $admin,
+        ];
+
+        // Jika jalur belum ada, lanjutkan insert data
+        $insertPermintaan = $permintaan->insert($data);
+
+        // Pastikan pengecekan insert menggunakan perbandingan dengan false
+        if ($insertPermintaan !== false) {
+            return redirect()->to(base_url(session()->get('role') . '/stock/'))
+                ->withInput()
+                ->with('success', 'Berhasil Membuat Schedule Packing');
+        } else {
+            return redirect()->to(base_url(session()->get('role') . '/stock/'))
+                ->withInput()
+                ->with('error', 'Gagal Membuat Schedule Packing');
+        }
+    }
+
+    public function schedulePacking()
+    {
+        $admin = session()->get('username');
+        $role = session()->get('role');
+        $dataPermintaan = $this->permintaanModel->getData($admin);
+
+        $data = [
+            'role' => $role,
+            'admin' => $admin,
+            'permintaan' => $dataPermintaan,
+        ];
+        return view($role . '/schedule', $data);
+    }
 }

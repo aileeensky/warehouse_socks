@@ -6,13 +6,13 @@ use CodeIgniter\Model;
 
 class PermintaanModel extends Model
 {
-    protected $table            = 'permintaans';
-    protected $primaryKey       = 'id';
+    protected $table            = 'permintaan';
+    protected $primaryKey       = 'id_minta';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [];
+    protected $allowedFields    = ['id_minta', 'id_anak', 'area_packing', 'gd_setting', 'created_at', 'updated_at', 'tgl_jalan', 'wh', 'eff', 'direct', 'kapasitas', 'qty_minta', 'ket_packing', 'ket_gd', 'status', 'deffect', 'admin'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -43,4 +43,16 @@ class PermintaanModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public function getData($admin)
+    {
+        return $this->select('tabel_induk.no_model, tabel_induk.delivery, tabel_anak.id_anak, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, DATE(permintaan.created_at) as tgl_minta, permintaan.tgl_jalan, permintaan.wh, permintaan.eff, permintaan.direct, permintaan.kapasitas, permintaan.qty_minta, permintaan.ket_packing, permintaan.gd_setting')
+            ->join('tabel_anak', 'permintaan.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
+            ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
+            ->where('permintaan.area_packing',  $admin)
+            ->where('permintaan.status', '')
+            ->groupBy('permintaan.id_minta')
+            ->orderBy('permintaan.tgl_jalan, tabel_induk.no_model, tabel_anak.inisial', 'ASC')
+            ->findAll();
+    }
 }
