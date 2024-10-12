@@ -42,4 +42,6 @@ $routes->group('/packing', ['filter' => 'packing'], function ($routes) {
     $routes->get('stock', 'PackingController::stock');
     $routes->post('inputpermintaan', 'PackingController::inputPermintaan');
     $routes->get('schedule', 'PackingController::schedulePacking');
+    $routes->post('kirimpermintaan', 'PackingController::kirimSchedule');
+    $routes->get('statuspermintaan', 'PackingController::statusPermintaan');
 });

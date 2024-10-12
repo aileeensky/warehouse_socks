@@ -43,7 +43,6 @@
                     <table class="table datatable">
                         <thead>
                             <tr>
-                                <th></th>
                                 <th scope="col">No</th>
                                 <th scope="col">Tgl Minta</th>
                                 <th scope="col">Tgl Jalan</th>
@@ -59,8 +58,9 @@
                                 <th scope="col">Kapasitas</th>
                                 <th scope="col">Qty Minta</th>
                                 <th scope="col">Ket Packing</th>
-                                <th scope="col">Gd Setting</th>
-                                <th scope="col">Kirim</th>
+                                <th scope="col">Qty Kirim</th>
+                                <th scope="col">Tagihan Packing</th>
+                                <th scope="col">Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,7 +68,6 @@
                             $no = 1;
                             foreach ($permintaan as $data) : ?>
                                 <tr>
-                                    <th><input class="form-check-input" type="checkbox" id="gridCheck1"></th>
                                     <th scope="row"><?= $no ?></th>
                                     <td><?= $data['tgl_minta'] ?></td>
                                     <td><?= $data['tgl_jalan'] ?></td>
@@ -83,17 +82,10 @@
                                     <td><?= $data['direct'] ?></td>
                                     <td><?= $data['kapasitas'] ?></td>
                                     <td><?= $data['qty_minta'] ?></td>
-                                    <td><?= $data['ket_packing'] ?></td>
-                                    <td><?= $data['gd_setting'] ?></td>
-                                    <td>
-                                        <form id="kirimForm<?= $data['id_minta'] ?>" action="<?= base_url('/' . $role . '/kirimpermintaan') ?>" method="post">
-                                            <input type="hidden" name="id_minta" value="<?= $data['id_minta'] ?>">
-                                            <input type="hidden" name="status" value="ON PROCCESS">
-                                            <a href="javascript:void(0);" onclick="document.getElementById('kirimForm<?= $data['id_minta'] ?>').submit();" style="cursor: pointer;">
-                                                <i class="ri-send-plane-2-line"></i>
-                                            </a>
-                                        </form>
-                                    </td>
+                                    <td><?= $data['ket_packing'] ?></td>\
+                                    <td></td>
+                                    <td></td>
+                                    <td><?= $data['status'] ?></td>
                                 </tr>
                             <?php
                                 $no++;
@@ -101,10 +93,8 @@
                         </tbody>
                     </table>
                     <!-- End Table with stripped rows -->
-                    <button type="button" class="btn btn-outline-primary">Kirim</button>
                 </div>
             </div>
-
         </div>
     </div>
 </section>

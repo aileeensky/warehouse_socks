@@ -184,7 +184,7 @@
             </li><!-- End Tables Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/dataterkirim') ?>">
+                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/statuspermintaan') ?>">
                     <i class="ri-file-list-3-line"></i><span>Status Permintaan</span>
                 </a>
             </li><!-- End Charts Nav -->

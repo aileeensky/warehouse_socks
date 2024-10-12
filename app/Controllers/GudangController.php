@@ -322,10 +322,14 @@ class GudangController extends BaseController
 
     public function dataPermintaan()
     {
+        $admin = session()->get('username');
         $role = session()->get('role');
+        $dataPermintaan = $this->permintaanModel->getDataMinta();
 
         $data = [
+            'admin' => $admin,
             'role' => $role,
+            'permintaan' => $dataPermintaan,
         ];
         return view($role . '/datapermintaan', $data);
     }

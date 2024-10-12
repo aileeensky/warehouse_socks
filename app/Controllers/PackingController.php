@@ -134,4 +134,44 @@ class PackingController extends BaseController
         ];
         return view($role . '/schedule', $data);
     }
+
+    public function kirimSchedule()
+    {
+        $role = session()->get('role');
+        $permintaan = $this->permintaanModel;
+        $idMinta = $this->request->getPost('id_minta');
+        $status = $this->request->getPost('status');
+
+        $data = [
+            'status' => $status,
+        ];
+
+        // Update data permintaan berdasarkan id_minta
+        $permintaan->where('id_minta', $idMinta)->update($idMinta, $data);
+
+        // Pastikan pengecekan insert menggunakan perbandingan dengan false
+        if ($permintaan !== false) {
+            return redirect()->to(base_url(session()->get('role') . '/schedule/'))
+                ->withInput()
+                ->with('success', 'Berhasil Kirim Schedule Packing');
+        } else {
+            return redirect()->to(base_url(session()->get('role') . '/schedule/'))
+                ->withInput()
+                ->with('error', 'Gagal Kirim Schedule Packing');
+        }
+    }
+
+    public function statusPermintaan()
+    {
+        $admin = session()->get('username');
+        $role = session()->get('role');
+        $dataPermintaan = $this->permintaanModel->getDataPermintaan($admin);
+
+        $data = [
+            'role' => $role,
+            'admin' => $admin,
+            'permintaan' => $dataPermintaan,
+        ];
+        return view($role . '/statuspermintaan', $data);
+    }
 }

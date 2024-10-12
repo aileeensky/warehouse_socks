@@ -46,11 +46,36 @@ class PermintaanModel extends Model
 
     public function getData($admin)
     {
-        return $this->select('tabel_induk.no_model, tabel_induk.delivery, tabel_anak.id_anak, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, DATE(permintaan.created_at) as tgl_minta, permintaan.tgl_jalan, permintaan.wh, permintaan.eff, permintaan.direct, permintaan.kapasitas, permintaan.qty_minta, permintaan.ket_packing, permintaan.gd_setting')
+        return $this->select('tabel_induk.no_model, tabel_induk.delivery, tabel_anak.id_anak, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, permintaan.id_minta, DATE(permintaan.created_at) as tgl_minta, permintaan.tgl_jalan, permintaan.wh, permintaan.eff, permintaan.direct, permintaan.kapasitas, permintaan.qty_minta, permintaan.ket_packing, permintaan.gd_setting')
             ->join('tabel_anak', 'permintaan.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
             ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
             ->where('permintaan.area_packing',  $admin)
             ->where('permintaan.status', '')
+            ->groupBy('permintaan.id_minta')
+            ->orderBy('permintaan.tgl_jalan, tabel_induk.no_model, tabel_anak.inisial', 'ASC')
+            ->findAll();
+    }
+
+    public function getDataPermintaan($admin)
+    {
+        return $this->select('tabel_induk.no_model, tabel_induk.delivery, tabel_induk.kode_buyer, tabel_anak.id_anak, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, permintaan.id_minta, DATE(permintaan.created_at) as tgl_minta, permintaan.tgl_jalan, permintaan.wh, permintaan.eff, permintaan.direct, permintaan.kapasitas, permintaan.qty_minta, permintaan.ket_packing, permintaan.gd_setting, permintaan.status, pengeluaran.qty_keluar')
+            ->join('tabel_anak', 'permintaan.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
+            ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
+            ->join('pengeluaran', 'permintaan.id_minta = pengeluaran.id_minta', 'left') // left join untuk tabel induk
+            ->where('permintaan.area_packing',  $admin)
+            ->where('permintaan.status <>', '')
+            ->groupBy('permintaan.id_minta')
+            ->orderBy('permintaan.tgl_jalan, tabel_induk.no_model, tabel_anak.inisial', 'ASC')
+            ->findAll();
+    }
+
+    public function getDataMinta()
+    {
+        return $this->select('tabel_induk.no_model, tabel_induk.delivery, tabel_induk.kode_buyer, tabel_anak.id_anak, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, permintaan.id_minta, DATE(permintaan.created_at) as tgl_minta, permintaan.area_packing, permintaan.tgl_jalan, permintaan.wh, permintaan.eff, permintaan.direct, permintaan.kapasitas, permintaan.qty_minta, permintaan.ket_packing, permintaan.gd_setting, permintaan.status, pengeluaran.qty_keluar')
+            ->join('tabel_anak', 'permintaan.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
+            ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
+            ->join('pengeluaran', 'permintaan.id_minta = pengeluaran.id_minta', 'left') // left join untuk tabel induk
+            ->where('permintaan.status', 'ON PROCCESS')
             ->groupBy('permintaan.id_minta')
             ->orderBy('permintaan.tgl_jalan, tabel_induk.no_model, tabel_anak.inisial', 'ASC')
             ->findAll();
