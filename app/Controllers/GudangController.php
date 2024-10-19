@@ -334,6 +334,19 @@ class GudangController extends BaseController
         return view($role . '/datapermintaan', $data);
     }
 
+    public function getStockByIdAnak()
+    {
+        // Ambil id_anak dari request POST
+        $idAnak = $this->request->getPost('id_anak');
+
+        // Ambil data stock berdasarkan id_anak
+        $dataStock = $this->stockModel->getStockNomodel($idAnak);
+
+        // Kembalikan data dalam bentuk JSON
+        return $this->response->setJSON($dataStock);
+    }
+
+
     public function dataTerkirim()
     {
         $role = session()->get('role');

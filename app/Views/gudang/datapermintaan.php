@@ -57,9 +57,9 @@
                                     <td><?= $data['inisial'] ?></td>
                                     <td><?= $data['style'] ?></td>
                                     <td><?= $data['qty_minta'] ?></td>
-                                    <td><?= $data['qty_keluar'] ?></td>
-                                    <td></td>
-                                    <td></td>
+                                    <td><?= $data['qty_keluar'] ?? 0 ?></td>
+                                    <td><?= isset($data['qty_po_inisial'], $data['qty_keluar']) ? $data['qty_po_inisial'] - $data['qty_keluar'] : 0 ?></td>
+                                    <td><i class="ri-edit-line" data-bs-toggle="modal" data-bs-target="#pengeluaranModal" data-packing="<?= $data['area_packing'] ?>" data-no_model="<?= $data['no_model'] ?>" data-area="<?= $data['area'] ?>" data-id_anak="<?= $data['id_anak'] ?>" data-inisial="<?= $data['inisial'] ?>" data-tgl_minta="<?= $data['tgl_minta'] ?>" data-tgl_jalan="<?= $data['tgl_jalan'] ?>" data-qty_minta="<?= $data['qty_minta'] ?>"></td>
                                 </tr>
                             <?php
                                 $no++;
@@ -67,11 +67,145 @@
                         </tbody>
                     </table>
                     <!-- End Table with stripped rows -->
+                    <!-- Large Modal -->
+                    <div class="modal fade" id="pengeluaranModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Pengeluaran</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <label for="packing" class="form-label">Area Packing</label>
+                                            <input type="text" class="form-control" name="packing" disabled>
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="no_model" class="form-label">No Model</label>
+                                            <input type="text" class="form-control" name="no_model" disabled>
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="area" class="form-label">Area</label>
+                                            <input type="text" class="form-control" name="area" disabled>
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="inisial" class="form-label">Inisial</label>
+                                            <input type="hidden" class="form-control" name="id_anak" disabled>
+                                            <input type="text" class="form-control" name="inisial" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <label for="tgl_minta" class="form-label">Tgl Minta</label>
+                                            <input type="date" class="form-control" name="tgl_minta" disabled>
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="tgl_jalan" class="form-label">Tgl Jalan</label>
+                                            <input type="date" class="form-control" name="tgl_jalan" disabled>
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="qty_minta" class="form-label">Qty Minta</label>
+                                            <input type="number" class="form-control" name="qty_minta" disabled>
+                                        </div>
+                                        <div class="col-3">
+                                            <label for="tgl_kirim" class="form-label">Tgl Kirim</label>
+                                            <input type="date" class="form-control" name="tgl_kirim">
+                                        </div>
+                                    </div>
+                                    <table class="table datatable">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">No</th>
+                                                <th scope="col">Jalur</th>
+                                                <th scope="col">Qty Stock</th>
+                                                <th scope="col">Box Stock</th>
+                                                <th scope="col">Qty Kirim</th>
+                                                <th scope="col">Box Kirim</th>
+                                                <th scope="col">Keterangan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
 
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary">Save changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- End Large Modal-->
                 </div>
             </div>
 
         </div>
     </div>
 </section>
+<script>
+    const inputStockModal = document.getElementById('pengeluaranModal');
+    inputStockModal.addEventListener('show.bs.modal', function(event) {
+        // Tombol yang memicu modal
+        const button = event.relatedTarget;
+
+        // Ambil data dari atribut data-*
+        const packing = button.getAttribute('data-packing');
+        const noModel = button.getAttribute('data-no_model');
+        const area = button.getAttribute('data-area');
+        const idAnak = button.getAttribute('data-id_anak');
+        const inisial = button.getAttribute('data-inisial');
+        const tglMinta = button.getAttribute('data-tgl_minta');
+        const tglJalan = button.getAttribute('data-tgl_jalan');
+        const qtyMinta = button.getAttribute('data-qty_minta');
+
+        // Isi input di dalam modal dengan nilai dari atribut
+        const inputPacking = pengeluaranModal.querySelector('input[name="packing"]');
+        const inputNoModel = pengeluaranModal.querySelector('input[name="no_model"]');
+        const inputArea = pengeluaranModal.querySelector('input[name="area"]');
+        const inputIdAnak = pengeluaranModal.querySelector('input[name="id_anak"]');
+        const inputInisial = pengeluaranModal.querySelector('input[name="inisial"]');
+        const inputTglMinta = pengeluaranModal.querySelector('input[name="tgl_minta"]');
+        const inputTglJalan = pengeluaranModal.querySelector('input[name="tgl_jalan"]');
+        const inputQtyMinta = pengeluaranModal.querySelector('input[name="qty_minta"]');
+
+        inputPacking.value = packing;
+        inputNoModel.value = noModel;
+        inputArea.value = area;
+        inputIdAnak.value = idAnak;
+        inputInisial.value = inisial;
+        inputTglMinta.value = tglMinta;
+        inputTglJalan.value = tglJalan;
+        inputQtyMinta.value = qtyMinta;
+
+        // Kirimkan idAnak ke controller dengan AJAX
+        $.ajax({
+            url: '/gudang/getStockByIdAnak',
+            type: 'POST',
+            data: {
+                id_anak: idAnak
+            },
+            success: function(response) {
+                let tbody = '';
+
+                response.forEach(function(stock, index) {
+                    tbody += `
+                    <tr>
+                        <th scope="row">${index + 1}</th>
+                        <td>${stock.jalur}</td>
+                        <td>${stock.qty_stock}</td>
+                        <td>${stock.box_stock}</td>
+                        <td><input type="text" class="form-control"></td>
+                        <td><input type="text" class="form-control"></td>
+                        <td><input type="text" class="form-control"></td>
+                    </tr>
+                `;
+                });
+
+                // Masukkan data stock ke dalam table
+                document.querySelector('#pengeluaranModal tbody').innerHTML = tbody;
+            }
+        });
+    });
+</script>
 <?php $this->endSection(); ?>

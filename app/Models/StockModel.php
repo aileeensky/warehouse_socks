@@ -69,4 +69,16 @@ class StockModel extends Model
             ->orderBy('tabel_induk.no_model, tabel_anak.inisial', 'ASC')
             ->findAll();
     }
+
+    public function getStockNomodel($data)
+    {
+        return $this->select('layout.jalur, SUM(COALESCE(stock.qty_stock, 0)) AS qty_stock, SUM(COALESCE(stock.box_stock, 0)) AS box_stock, tabel_induk.no_model, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna')
+            ->join('layout', 'layout.jalur = stock.jalur', 'left') // left join agar tetap menampilkan jalur walau stock kosong
+            ->join('tabel_anak', 'stock.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
+            ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
+            ->where('tabel_anak.id_anak', $data)
+            ->groupBy('layout.jalur, tabel_anak.id_anak')
+            ->orderBy('tabel_induk.no_model, tabel_anak.inisial', 'ASC')
+            ->findAll();
+    }
 }

@@ -34,6 +34,7 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->get('dataterkirim', 'GudangController::dataTerkirim');
     $routes->get('reportpemasukan', 'GudangController::reportPemasukan');
     $routes->get('reportpengeluaran', 'GudangController::reportPengeluaran');
+    $routes->post('getStockByIdAnak', 'GudangController::getStockByIdAnak');
 });
 
 //packing
