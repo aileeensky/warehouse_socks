@@ -31,6 +31,7 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->post('inputstock', 'GudangController::inputStock');
     $routes->get('detailstock/(:any)', 'GudangController::detailStock/$1');
     $routes->get('datapermintaan', 'GudangController::dataPermintaan');
+    $routes->post('inputpengeluaran', 'GudangController::inputPengeluaran');
     $routes->get('dataterkirim', 'GudangController::dataTerkirim');
     $routes->get('reportpemasukan', 'GudangController::reportPemasukan');
     $routes->get('reportpengeluaran', 'GudangController::reportPengeluaran');

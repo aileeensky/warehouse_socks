@@ -45,7 +45,9 @@
                         <tbody>
                             <?php
                             $no = 1;
-                            foreach ($permintaan as $data) : ?>
+                            foreach ($permintaan as $data) :
+                                $maxKirim = $data['qty_minta'] + ($data['qty_minta'] * 0.2);
+                            ?>
                                 <tr>
                                     <th scope="row"><?= $no ?></th>
                                     <td><?= $data['tgl_minta'] ?></td>
@@ -59,7 +61,7 @@
                                     <td><?= $data['qty_minta'] ?></td>
                                     <td><?= $data['qty_keluar'] ?? 0 ?></td>
                                     <td><?= isset($data['qty_po_inisial'], $data['qty_keluar']) ? $data['qty_po_inisial'] - $data['qty_keluar'] : 0 ?></td>
-                                    <td><i class="ri-edit-line" data-bs-toggle="modal" data-bs-target="#pengeluaranModal" data-packing="<?= $data['area_packing'] ?>" data-no_model="<?= $data['no_model'] ?>" data-area="<?= $data['area'] ?>" data-id_anak="<?= $data['id_anak'] ?>" data-inisial="<?= $data['inisial'] ?>" data-tgl_minta="<?= $data['tgl_minta'] ?>" data-tgl_jalan="<?= $data['tgl_jalan'] ?>" data-qty_minta="<?= $data['qty_minta'] ?>"></td>
+                                    <td><i class="ri-edit-line" data-bs-toggle="modal" data-bs-target="#pengeluaranModal" data-packing="<?= $data['area_packing'] ?>" data-no_model="<?= $data['no_model'] ?>" data-area="<?= $data['area'] ?>" data-id_anak="<?= $data['id_anak'] ?>" data-inisial="<?= $data['inisial'] ?>" data-tgl_minta="<?= $data['tgl_minta'] ?>" data-tgl_jalan="<?= $data['tgl_jalan'] ?>" data-qty_minta="<?= $data['qty_minta'] ?>" data-id_minta="<?= $data['id_minta'] ?>" data-max_kirim="<?= $maxKirim ?>"></td>
                                 </tr>
                             <?php
                                 $no++;
@@ -71,69 +73,78 @@
                     <div class="modal fade" id="pengeluaranModal" tabindex="-1">
                         <div class="modal-dialog modal-lg">
                             <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Pengeluaran</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row">
-                                        <div class="col-3">
-                                            <label for="packing" class="form-label">Area Packing</label>
-                                            <input type="text" class="form-control" name="packing" disabled>
-                                        </div>
-                                        <div class="col-3">
-                                            <label for="no_model" class="form-label">No Model</label>
-                                            <input type="text" class="form-control" name="no_model" disabled>
-                                        </div>
-                                        <div class="col-3">
-                                            <label for="area" class="form-label">Area</label>
-                                            <input type="text" class="form-control" name="area" disabled>
-                                        </div>
-                                        <div class="col-3">
-                                            <label for="inisial" class="form-label">Inisial</label>
-                                            <input type="hidden" class="form-control" name="id_anak" disabled>
-                                            <input type="text" class="form-control" name="inisial" disabled>
-                                        </div>
+                                <form action="<?= base_url('/' . $role . '/inputpengeluaran') ?>" method="post">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Pengeluaran</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-3">
-                                            <label for="tgl_minta" class="form-label">Tgl Minta</label>
-                                            <input type="date" class="form-control" name="tgl_minta" disabled>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-3">
+                                                <label for="packing" class="form-label">Area Packing</label>
+                                                <input type="text" class="form-control" name="packing" disabled>
+                                            </div>
+                                            <div class="col-3">
+                                                <label for="no_model" class="form-label">No Model</label>
+                                                <input type="text" class="form-control" name="no_model" disabled>
+                                            </div>
+                                            <div class="col-3">
+                                                <label for="area" class="form-label">Area</label>
+                                                <input type="text" class="form-control" name="area" disabled>
+                                            </div>
+                                            <div class="col-3">
+                                                <label for="inisial" class="form-label">Inisial</label>
+                                                <input type="hidden" class="form-control" name="id_anak" disabled>
+                                                <input type="text" class="form-control" name="inisial" disabled>
+                                            </div>
                                         </div>
-                                        <div class="col-3">
-                                            <label for="tgl_jalan" class="form-label">Tgl Jalan</label>
-                                            <input type="date" class="form-control" name="tgl_jalan" disabled>
+                                        <div class="row">
+                                            <div class="col-3">
+                                                <label for="tgl_minta" class="form-label">Tgl Minta</label>
+                                                <input type="hidden" class="form-control" name="id_minta" disabled>
+                                                <input type="date" class="form-control" name="tgl_minta" disabled>
+                                            </div>
+                                            <div class="col-3">
+                                                <label for="tgl_jalan" class="form-label">Tgl Jalan</label>
+                                                <input type="date" class="form-control" name="tgl_jalan" disabled>
+                                            </div>
+                                            <div class="col-3">
+                                                <label for="qty_minta" class="form-label">Qty Minta</label>
+                                                <input type="number" class="form-control" name="qty_minta" disabled>
+                                            </div>
+                                            <div class="col-3">
+                                                <label for="tgl_kirim" class="form-label">Tgl Kirim</label>
+                                                <input type="date" class="form-control" name="tgl_kirim">
+                                            </div>
                                         </div>
-                                        <div class="col-3">
-                                            <label for="qty_minta" class="form-label">Qty Minta</label>
-                                            <input type="number" class="form-control" name="qty_minta" disabled>
+                                        <div class="row">
+                                            <div class="col-3">
+                                                <label for="tgl_kirim" class="form-label">Max Kirim</label>
+                                                <input type="text" class="form-control" name="max_kirim" id="max_kirim" disabled>
+                                            </div>
                                         </div>
-                                        <div class="col-3">
-                                            <label for="tgl_kirim" class="form-label">Tgl Kirim</label>
-                                            <input type="date" class="form-control" name="tgl_kirim">
-                                        </div>
-                                    </div>
-                                    <table class="table datatable">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">No</th>
-                                                <th scope="col">Jalur</th>
-                                                <th scope="col">Qty Stock</th>
-                                                <th scope="col">Box Stock</th>
-                                                <th scope="col">Qty Kirim</th>
-                                                <th scope="col">Box Kirim</th>
-                                                <th scope="col">Keterangan</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                        <table class="table datatable">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">No</th>
+                                                    <th scope="col">Jalur</th>
+                                                    <th scope="col">Qty Stock</th>
+                                                    <th scope="col">Box Stock</th>
+                                                    <th scope="col">Qty Kirim</th>
+                                                    <th scope="col">Box Kirim</th>
+                                                    <th scope="col">Keterangan</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
 
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-primary">Save changes</button>
-                                </div>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div><!-- End Large Modal-->
@@ -158,6 +169,8 @@
         const tglMinta = button.getAttribute('data-tgl_minta');
         const tglJalan = button.getAttribute('data-tgl_jalan');
         const qtyMinta = button.getAttribute('data-qty_minta');
+        const idMinta = button.getAttribute('data-id_minta');
+        const maxKirim = button.getAttribute('data-max_kirim');
 
         // Isi input di dalam modal dengan nilai dari atribut
         const inputPacking = pengeluaranModal.querySelector('input[name="packing"]');
@@ -168,6 +181,8 @@
         const inputTglMinta = pengeluaranModal.querySelector('input[name="tgl_minta"]');
         const inputTglJalan = pengeluaranModal.querySelector('input[name="tgl_jalan"]');
         const inputQtyMinta = pengeluaranModal.querySelector('input[name="qty_minta"]');
+        const inputIdMinta = pengeluaranModal.querySelector('input[name="id_minta"]');
+        const inputMaxKirim = pengeluaranModal.querySelector('input[name="max_kirim"]');
 
         inputPacking.value = packing;
         inputNoModel.value = noModel;
@@ -177,6 +192,8 @@
         inputTglMinta.value = tglMinta;
         inputTglJalan.value = tglJalan;
         inputQtyMinta.value = qtyMinta;
+        inputIdMinta.value = idMinta;
+        inputMaxKirim.value = maxKirim;
 
         // Kirimkan idAnak ke controller dengan AJAX
         $.ajax({
@@ -195,7 +212,7 @@
                         <td>${stock.jalur}</td>
                         <td>${stock.qty_stock}</td>
                         <td>${stock.box_stock}</td>
-                        <td><input type="text" class="form-control"></td>
+                        <td><input type="text" class="form-control" oninput="checkQty(this)"></td>
                         <td><input type="text" class="form-control"></td>
                         <td><input type="text" class="form-control"></td>
                     </tr>
@@ -207,5 +224,30 @@
             }
         });
     });
+
+    function checkQty(input) {
+        // Ambil elemen max_kirim dan pastikan nilai numeric
+        const maxKirim = parseFloat(document.getElementById('max_kirim').value);
+
+        // Ambil elemen qty_stock dari baris yang sama
+        const qtyStockCell = input.closest('tr').querySelector('td:nth-child(3)');
+        const qtyStock = parseFloat(qtyStockCell.textContent);
+
+        // Ambil nilai qty_kirim yang diinputkan
+        const qtyKirim = parseFloat(input.value);
+
+        // Validasi qty_kirim
+        if (isNaN(qtyKirim)) {
+            return; // Keluar jika input bukan angka
+        }
+
+        if (qtyKirim > maxKirim) {
+            alert('Qty kirim melebihi max kirim!');
+            input.value = ''; // Reset nilai input
+        } else if (qtyKirim > qtyStock) {
+            alert('Qty kirim melebihi qty stock!');
+            input.value = ''; // Reset nilai input
+        }
+    }
 </script>
 <?php $this->endSection(); ?>
