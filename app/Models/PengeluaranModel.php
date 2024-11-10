@@ -6,13 +6,13 @@ use CodeIgniter\Model;
 
 class PengeluaranModel extends Model
 {
-    protected $table            = 'pengeluarans';
-    protected $primaryKey       = 'id';
+    protected $table            = 'pengeluaran';
+    protected $primaryKey       = 'id_keluar';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [];
+    protected $allowedFields    = ['id_keluar', 'id_anak', 'id_minta', 'created_at', 'updated_at', 'qty_keluar', 'box_keluar', 'jalur', 'gd_setting', 'ket_keluar', 'hapus_jalur', 'admin'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;

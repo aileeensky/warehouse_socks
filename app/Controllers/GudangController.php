@@ -353,15 +353,12 @@ class GudangController extends BaseController
 
         $idAnak = $this->request->getPost('id_anak');
         $idMinta = $this->request->getPost('id_minta');
-        $qtyMinta = $this->request->getPost('qty_minta');
         $qtyKeluar = $this->request->getPost('qty_keluar');
         $boxKeluar = $this->request->getPost('box_keluar');
         $jalur = $this->request->getPost('jalur');
-        $gdSetting = $this->request->getPost('gd_setting');
         $ketKeluar = $this->request->getPost('keterangan');
-        $admin = $this->request->getPost('admin');
-        $maxKirim = $qtyMinta + ($qtyMinta * 0.02);
-        dd($maxKirim);
+        $admin = session()->get('username');
+        $gdSetting= 'GD SETTING';
 
         $data = [
             'created_at' => $now,
@@ -375,14 +372,7 @@ class GudangController extends BaseController
             'admin' => $admin,
         ];
 
-        // Jika jalur belum ada, lanjutkan insert data
-        if ($qtyKeluar <= $maxKirim) {
-            $insertPengeluaran = $pengeluaran->insert($data);
-        } else {
-            return redirect()->to(base_url(session()->get('role') . '/datapermintaan/'))
-                ->withInput()
-                ->with('error', 'Qty Kirim Melebihi Max Kirim');
-        }
+        $insertPengeluaran = $pengeluaran->insert($data);
 
         // Pastikan pengecekan insert menggunakan perbandingan dengan false
         if ($insertPengeluaran !== false) {

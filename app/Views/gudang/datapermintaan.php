@@ -60,7 +60,7 @@
                                     <td><?= $data['style'] ?></td>
                                     <td><?= $data['qty_minta'] ?></td>
                                     <td><?= $data['qty_keluar'] ?? 0 ?></td>
-                                    <td><?= isset($data['qty_po_inisial'], $data['qty_keluar']) ? $data['qty_po_inisial'] - $data['qty_keluar'] : 0 ?></td>
+                                    <td><?= isset($data['qty_minta'], $data['qty_keluar']) ? $data['qty_minta'] - $data['qty_keluar'] : 0 ?></td>
                                     <td><i class="ri-edit-line" data-bs-toggle="modal" data-bs-target="#pengeluaranModal" data-packing="<?= $data['area_packing'] ?>" data-no_model="<?= $data['no_model'] ?>" data-area="<?= $data['area'] ?>" data-id_anak="<?= $data['id_anak'] ?>" data-inisial="<?= $data['inisial'] ?>" data-tgl_minta="<?= $data['tgl_minta'] ?>" data-tgl_jalan="<?= $data['tgl_jalan'] ?>" data-qty_minta="<?= $data['qty_minta'] ?>" data-id_minta="<?= $data['id_minta'] ?>" data-max_kirim="<?= $maxKirim ?>"></td>
                                 </tr>
                             <?php
@@ -94,14 +94,14 @@
                                             </div>
                                             <div class="col-3">
                                                 <label for="inisial" class="form-label">Inisial</label>
-                                                <input type="hidden" class="form-control" name="id_anak" disabled>
+                                                <input type="text" class="form-control" name="id_anak" readonly>
                                                 <input type="text" class="form-control" name="inisial" disabled>
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-3">
                                                 <label for="tgl_minta" class="form-label">Tgl Minta</label>
-                                                <input type="hidden" class="form-control" name="id_minta" disabled>
+                                                <input type="hidden" class="form-control" name="id_minta">
                                                 <input type="date" class="form-control" name="tgl_minta" disabled>
                                             </div>
                                             <div class="col-3">
@@ -114,13 +114,13 @@
                                             </div>
                                             <div class="col-3">
                                                 <label for="tgl_kirim" class="form-label">Tgl Kirim</label>
-                                                <input type="date" class="form-control" name="tgl_kirim">
+                                                <input type="date" class="form-control" name="tgl_kirim" required>
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-3">
                                                 <label for="tgl_kirim" class="form-label">Max Kirim</label>
-                                                <input type="text" class="form-control" name="max_kirim" id="max_kirim" disabled>
+                                                <input type="number" class="form-control" name="max_kirim" id="max_kirim" disabled>
                                             </div>
                                         </div>
                                         <table class="table datatable">
@@ -172,6 +172,20 @@
         const idMinta = button.getAttribute('data-id_minta');
         const maxKirim = button.getAttribute('data-max_kirim');
 
+        // Log data untuk debugging
+    console.log('Data Modal:', {
+        packing,
+        noModel,
+        area,
+        idAnak,
+        inisial,
+        tglMinta,
+        tglJalan,
+        qtyMinta,
+        idMinta,
+        maxKirim
+    });
+
         // Isi input di dalam modal dengan nilai dari atribut
         const inputPacking = pengeluaranModal.querySelector('input[name="packing"]');
         const inputNoModel = pengeluaranModal.querySelector('input[name="no_model"]');
@@ -209,14 +223,14 @@
                     tbody += `
                     <tr>
                         <th scope="row">${index + 1}</th>
-                        <td>${stock.jalur}</td>
+                        <td><input type="text" name="jalur" class="form-control" value="${stock.jalur}" required></td>
                         <td>${stock.qty_stock}</td>
                         <td>${stock.box_stock}</td>
-                        <td><input type="text" class="form-control" oninput="checkQty(this)"></td>
-                        <td><input type="text" class="form-control"></td>
-                        <td><input type="text" class="form-control"></td>
+                        <td><input type="number" name="qty_keluar" class="form-control" oninput="checkQty(this)" data-qty-stock="${stock.qty_stock}" data-max-kirim="${parseFloat(maxKirim) || 0}" required></td>
+                        <td><input type="text" name="box_keluar" class="form-control" oninput="checkBoxQty(this)" data-qty-stock="${stock.box_stock}" required></td>
+                        <td><input type="text" name="keterangan" class="form-control"></td>
                     </tr>
-                `;
+                    `;
                 });
 
                 // Masukkan data stock ke dalam table
@@ -226,27 +240,27 @@
     });
 
     function checkQty(input) {
-        // Ambil elemen max_kirim dan pastikan nilai numeric
-        const maxKirim = parseFloat(document.getElementById('max_kirim').value);
+        const qtyKirim = parseFloat(input.value) || 0;
+        const qtyStock = parseFloat(input.getAttribute('data-qty-stock'));
+        const maxKirim = parseFloat(input.getAttribute('data-max-kirim'));
 
-        // Ambil elemen qty_stock dari baris yang sama
-        const qtyStockCell = input.closest('tr').querySelector('td:nth-child(3)');
-        const qtyStock = parseFloat(qtyStockCell.textContent);
 
-        // Ambil nilai qty_kirim yang diinputkan
-        const qtyKirim = parseFloat(input.value);
-
-        // Validasi qty_kirim
-        if (isNaN(qtyKirim)) {
-            return; // Keluar jika input bukan angka
+        if (qtyKirim > qtyStock) {
+            alert("Qty kirim tidak boleh melebihi qty stock!");
+            input.value = ''; // Kosongkan input jika tidak valid
+        } else if (qtyKirim > maxKirim) {
+            alert("Qty kirim tidak boleh melebihi max kirim!");
+            input.value = ''; // Kosongkan input jika tidak valid
         }
+    }
 
-        if (qtyKirim > maxKirim) {
-            alert('Qty kirim melebihi max kirim!');
-            input.value = ''; // Reset nilai input
-        } else if (qtyKirim > qtyStock) {
-            alert('Qty kirim melebihi qty stock!');
-            input.value = ''; // Reset nilai input
+    function checkBoxQty(input) {
+        const boxKirim = parseFloat(input.value) || 0;
+        const boxStock = parseFloat(input.getAttribute('data-qty-stock'));
+
+        if (boxKirim > boxStock) {
+            alert("Box kirim tidak boleh melebihi box stock!");
+            input.value = ''; // Kosongkan input jika tidak valid
         }
     }
 </script>
