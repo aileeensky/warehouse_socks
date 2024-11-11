@@ -43,21 +43,29 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <th scope="row">1</th>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
+                            <?php
+                            $no = 1;
+                            foreach ($terkirim as $data) :
+                                $maxKirim = $data['qty_minta'] + ($data['qty_minta'] * 0.2);
+                            ?>
+                                <tr>
+                                    <th scope="row"><?= $no ?></th>
+                                    <td><?= $data['tgl_minta'] ?></td>
+                                    <td><?= $data['tgl_jalan'] ?></td>
+                                    <td><?= $data['area_packing'] ?></td>
+                                    <td><?= $data['area'] ?></td>
+                                    <td><?= $data['kode_buyer'] ?></td>
+                                    <td><?= $data['no_model'] ?></td>
+                                    <td><?= $data['inisial'] ?></td>
+                                    <td><?= $data['style'] ?></td>
+                                    <td><?= $data['qty_minta'] ?></td>
+                                    <td><?= $data['qty_keluar'] ?></td>
+                                    <td><?= $data['tagihan'] ?></td>
+                                    <td><?= $data['qty_keluar'] - $data['qty_minta'] ?></td>
+                                </tr>
+                            <?php
+                                $no++;
+                            endforeach; ?>
                         </tbody>
                     </table>
                     <!-- End Table with stripped rows -->

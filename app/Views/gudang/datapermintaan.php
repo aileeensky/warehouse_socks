@@ -59,8 +59,8 @@
                                     <td><?= $data['inisial'] ?></td>
                                     <td><?= $data['style'] ?></td>
                                     <td><?= $data['qty_minta'] ?></td>
-                                    <td><?= $data['qty_keluar'] ?? 0 ?></td>
-                                    <td><?= isset($data['qty_minta'], $data['qty_keluar']) ? $data['qty_minta'] - $data['qty_keluar'] : 0 ?></td>
+                                    <td><?= $data['qty_keluar'] ?></td>
+                                    <td><?= $data['tagihan'] ?></td>
                                     <td><i class="ri-edit-line" data-bs-toggle="modal" data-bs-target="#pengeluaranModal" data-packing="<?= $data['area_packing'] ?>" data-no_model="<?= $data['no_model'] ?>" data-area="<?= $data['area'] ?>" data-id_anak="<?= $data['id_anak'] ?>" data-inisial="<?= $data['inisial'] ?>" data-tgl_minta="<?= $data['tgl_minta'] ?>" data-tgl_jalan="<?= $data['tgl_jalan'] ?>" data-qty_minta="<?= $data['qty_minta'] ?>" data-id_minta="<?= $data['id_minta'] ?>" data-max_kirim="<?= $maxKirim ?>"></td>
                                 </tr>
                             <?php
@@ -94,7 +94,7 @@
                                             </div>
                                             <div class="col-3">
                                                 <label for="inisial" class="form-label">Inisial</label>
-                                                <input type="text" class="form-control" name="id_anak" readonly>
+                                                <input type="hidden" class="form-control" name="id_anak" readonly>
                                                 <input type="text" class="form-control" name="inisial" disabled>
                                             </div>
                                         </div>

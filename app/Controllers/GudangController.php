@@ -350,6 +350,7 @@ class GudangController extends BaseController
     {
         $now = date('Y-m-d H:i:s');
         $pengeluaran = $this->pengeluaranModel;
+        $permintaan = $this->permintaanModel;
 
         $idAnak = $this->request->getPost('id_anak');
         $idMinta = $this->request->getPost('id_minta');
@@ -373,9 +374,13 @@ class GudangController extends BaseController
         ];
 
         $insertPengeluaran = $pengeluaran->insert($data);
-
+        
+        $dataToUpdate = [
+            'status' => 'DONE'
+        ];
+        $permintaan->where('id_minta', $idMinta)->update($idMinta, $dataToUpdate);
         // Pastikan pengecekan insert menggunakan perbandingan dengan false
-        if ($insertPengeluaran !== false) {
+        if ($permintaan !== false) {
             return redirect()->to(base_url(session()->get('role') . '/dataterkirim/'))
                 ->withInput()
                 ->with('success', 'Berhasil Input Pengeluaran');
@@ -388,10 +393,12 @@ class GudangController extends BaseController
 
     public function dataTerkirim()
     {
+        $admin = session()->get('username');
         $role = session()->get('role');
-
+        $dataTerkirim = $this->permintaanModel->getDataTerkirim();
         $data = [
             'role' => $role,
+            'terkirim' => $dataTerkirim
         ];
         return view($role . '/dataterkirim', $data);
     }

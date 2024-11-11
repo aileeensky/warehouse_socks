@@ -83,8 +83,8 @@
                                     <td><?= $data['kapasitas'] ?></td>
                                     <td><?= $data['qty_minta'] ?></td>
                                     <td><?= $data['ket_packing'] ?></td>\
-                                    <td></td>
-                                    <td></td>
+                                    <td><?= $data['qty_keluar'] ?></td>
+                                    <td><?= $data['tagihan'] ?></td>
                                     <td><?= $data['status'] ?></td>
                                 </tr>
                             <?php
