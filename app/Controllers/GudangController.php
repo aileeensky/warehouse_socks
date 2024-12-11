@@ -54,9 +54,33 @@ class GudangController extends BaseController
     public function index()
     {
         $role = session()->get('role');
+        $today = date('Y-m-d');
+        $totalStock = $this->stockModel->selectSum('qty_stock')->get()->getRow()->qty_stock;
+        $totalPemasukan = $this->pemasukanModel
+            ->selectSum('qty_masuk')
+            ->where('DATE(created_at)', $today)
+            ->get()
+            ->getRow()
+            ->qty_masuk;
+        $totalPermintaan = $this->permintaanModel
+            ->selectSum('qty_minta')
+            ->where('DATE(created_at)', $today)
+            ->get()
+            ->getRow()
+            ->qty_minta;
+        $totalPengeluaran = $this->pengeluaranModel
+            ->selectSum('qty_keluar')
+            ->where('DATE(created_at)', $today)
+            ->get()
+            ->getRow()
+            ->qty_keluar;
 
         $data = [
             'role' => $role,
+            'stock' => $totalStock,
+            'pemasukan' => $totalPemasukan,
+            'permintaan' => $totalPermintaan,
+            'pengeluaran' => $totalPengeluaran,
         ];
         return view($role . '/index', $data);
     }
@@ -359,7 +383,7 @@ class GudangController extends BaseController
         $jalur = $this->request->getPost('jalur');
         $ketKeluar = $this->request->getPost('keterangan');
         $admin = session()->get('username');
-        $gdSetting= 'GD SETTING';
+        $gdSetting = 'GD SETTING';
 
         $data = [
             'created_at' => $now,
@@ -374,7 +398,7 @@ class GudangController extends BaseController
         ];
 
         $insertPengeluaran = $pengeluaran->insert($data);
-        
+
         $dataToUpdate = [
             'status' => 'DONE'
         ];
