@@ -6,8 +6,8 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Report Pemasukan</h5>
-                    <form action="">
+                    <h5 class="card-title"><?= $title ?></h5>
+                    <form action="<?= base_url($role . '/reportpemasukan') ?>" method="post">
                         <div class="row mb-2">
                             <label for="cari" class="col-sm-2 col-form-label">No Model</label>
                             <div class="col-sm-2">
@@ -21,10 +21,10 @@
                                 <button class="btn btn-info">Search</button>
                             </div>
                         </div>
+                        <button class="nav-link collapsed" type="submit" formaction="<?= base_url($role . '/excelreportpemasukan') ?>">
+                            <i class="ri-file-excel-line" style="font-size: 30px;"></i>
+                        </button>
                     </form>
-                    <a class="nav-link collapsed" href="">
-                        <i class="ri-file-excel-line" style="font-size: 30px;"></i>
-                    </a>
                     <p></p>
                     <!-- Table with stripped rows -->
                     <table class="table datatable">
@@ -37,28 +37,31 @@
                                 <th scope="col">No Model</th>
                                 <th scope="col">In</th>
                                 <th scope="col">Style</th>
-                                <th scope="col">Qty</th>
-                                <th scope="col">Box</th>
+                                <th scope="col">Qty Masuk</th>
+                                <th scope="col">Box Masuk</th>
                                 <th scope="col">Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <th scope="row">1</th>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
+                            <?php
+                            $no = 1;
+                            foreach ($dataMasuk as $dt) : ?>
+                                <tr>
+                                    <th scope="row"><?= $no++ ?></th>
+                                    <td><?= $dt['created_at'] ?></td>
+                                    <td><?= $dt['area'] ?></td>
+                                    <td><?= $dt['kode_buyer'] ?></td>
+                                    <td><?= $dt['no_model'] ?></td>
+                                    <td><?= $dt['inisial'] ?></td>
+                                    <td><?= $dt['style'] ?></td>
+                                    <td><?= $dt['qty_masuk'] ?></td>
+                                    <td><?= $dt['box_masuk'] ?></td>
+                                    <td><?= $dt['ket_masuk'] ?></td>
+                                </tr>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                     <!-- End Table with stripped rows -->
-
                 </div>
             </div>
 

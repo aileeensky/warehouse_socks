@@ -54,33 +54,9 @@ class GudangController extends BaseController
     public function index()
     {
         $role = session()->get('role');
-        $today = date('Y-m-d');
-        $totalStock = $this->stockModel->selectSum('qty_stock')->get()->getRow()->qty_stock;
-        $totalPemasukan = $this->pemasukanModel
-            ->selectSum('qty_masuk')
-            ->where('DATE(created_at)', $today)
-            ->get()
-            ->getRow()
-            ->qty_masuk;
-        $totalPermintaan = $this->permintaanModel
-            ->selectSum('qty_minta')
-            ->where('DATE(created_at)', $today)
-            ->get()
-            ->getRow()
-            ->qty_minta;
-        $totalPengeluaran = $this->pengeluaranModel
-            ->selectSum('qty_keluar')
-            ->where('DATE(created_at)', $today)
-            ->get()
-            ->getRow()
-            ->qty_keluar;
 
         $data = [
             'role' => $role,
-            'stock' => $totalStock,
-            'pemasukan' => $totalPemasukan,
-            'permintaan' => $totalPermintaan,
-            'pengeluaran' => $totalPengeluaran,
         ];
         return view($role . '/index', $data);
     }
@@ -346,9 +322,13 @@ class GudangController extends BaseController
 
     public function dataPermintaan()
     {
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_jalan = $this->request->getPost('cari2');
+
         $admin = session()->get('username');
         $role = session()->get('role');
-        $dataPermintaan = $this->permintaanModel->getDataMinta();
+
+        $dataPermintaan = $this->permintaanModel->getDataMinta($nomodel, $tgl_jalan);
 
         $data = [
             'admin' => $admin,
@@ -373,18 +353,20 @@ class GudangController extends BaseController
     public function inputPengeluaran()
     {
         $now = date('Y-m-d H:i:s');
+        $admin = session()->get('username');
         $pengeluaran = $this->pengeluaranModel;
         $permintaan = $this->permintaanModel;
 
         $idAnak = $this->request->getPost('id_anak');
         $idMinta = $this->request->getPost('id_minta');
+        $qtyMinta = $this->request->getPost('qty_minta');
         $qtyKeluar = $this->request->getPost('qty_keluar');
         $boxKeluar = $this->request->getPost('box_keluar');
         $jalur = $this->request->getPost('jalur');
         $ketKeluar = $this->request->getPost('keterangan');
-        $admin = session()->get('username');
         $gdSetting = 'GD SETTING';
 
+        // dd($qtyMinta);
         $data = [
             'created_at' => $now,
             'id_anak' => $idAnak,
@@ -399,12 +381,22 @@ class GudangController extends BaseController
 
         $insertPengeluaran = $pengeluaran->insert($data);
 
-        $dataToUpdate = [
-            'status' => 'DONE'
-        ];
-        $permintaan->where('id_minta', $idMinta)->update($idMinta, $dataToUpdate);
-        // Pastikan pengecekan insert menggunakan perbandingan dengan false
-        if ($permintaan !== false) {
+        if ($insertPengeluaran) {
+            // Ambil total qty_keluar berdasarkan id_minta
+            $selectQtyKeluar = $pengeluaran->selectSum('qty_keluar')
+                ->where('id_minta', $idMinta)
+                ->get()
+                ->getRowArray();
+
+            $totalQtyKeluar = $selectQtyKeluar['qty_keluar'] ?? 0;
+
+            $sisa = $qtyMinta - $totalQtyKeluar;
+
+            // Jika sisa sudah nol atau kurang, update status permintaan ke DONE
+            if ($sisa <= 0) {
+                $permintaan->update($idMinta, ['status' => 'DONE']);
+            }
+
             return redirect()->to(base_url(session()->get('role') . '/dataterkirim/'))
                 ->withInput()
                 ->with('success', 'Berhasil Input Pengeluaran');
@@ -417,22 +409,32 @@ class GudangController extends BaseController
 
     public function dataTerkirim()
     {
-        $admin = session()->get('username');
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_jalan = $this->request->getPost('cari2');
+
         $role = session()->get('role');
-        $dataTerkirim = $this->permintaanModel->getDataTerkirim();
+
+        $terkirim = $this->permintaanModel->getDataTerkirim($nomodel, $tgl_jalan);
+
         $data = [
             'role' => $role,
-            'terkirim' => $dataTerkirim
+            'terkirim' => $terkirim,
         ];
         return view($role . '/dataterkirim', $data);
     }
 
     public function reportPemasukan()
     {
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_masuk = $this->request->getPost('cari2');
+
         $role = session()->get('role');
+        $dataMasuk = $this->pemasukanModel->getData($nomodel, $tgl_masuk);
 
         $data = [
             'role' => $role,
+            'dataMasuk' => $dataMasuk,
+            'title' => 'Report Pemasukan',
         ];
         return view($role . '/reportpemasukan', $data);
     }
@@ -440,10 +442,13 @@ class GudangController extends BaseController
     public function reportPengeluaran()
     {
         $role = session()->get('role');
+        $dataKeluar = $this->pengeluaranModel->getData();
 
         $data = [
             'role' => $role,
+            'dataKeluar' => '$dataKeluar',
         ];
+
         return view($role . '/reportpengeluaran', $data);
     }
 }

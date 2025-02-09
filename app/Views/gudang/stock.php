@@ -33,7 +33,7 @@
                     <div style="display: flex; align-items: center;">
                         <div class="col-md-2">
                             <!-- Icon Excel -->
-                            <a class="nav-link collapsed" href="">
+                            <a class="nav-link collapsed" href="<?= base_url($role . '/excelstockgudang') ?>">
                                 <i class="ri-file-excel-line" style="font-size: 30px;"></i>
                             </a>
                         </div>

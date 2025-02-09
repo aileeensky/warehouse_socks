@@ -31,11 +31,18 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->post('inputstock', 'GudangController::inputStock');
     $routes->get('detailstock/(:any)', 'GudangController::detailStock/$1');
     $routes->get('datapermintaan', 'GudangController::dataPermintaan');
+    $routes->post('datapermintaan', 'GudangController::dataPermintaan');
     $routes->post('inputpengeluaran', 'GudangController::inputPengeluaran');
     $routes->get('dataterkirim', 'GudangController::dataTerkirim');
+    $routes->post('dataterkirim', 'GudangController::dataTerkirim');
     $routes->get('reportpemasukan', 'GudangController::reportPemasukan');
+    $routes->post('reportpemasukan', 'GudangController::reportPemasukan');
     $routes->get('reportpengeluaran', 'GudangController::reportPengeluaran');
     $routes->post('getStockByIdAnak', 'GudangController::getStockByIdAnak');
+
+    //report
+    $routes->get('excelstockgudang', 'ExcelController::excelStockGudang');
+    $routes->post('excelreportpemasukan', 'ExcelController::excelReportPemasukan');
 });
 
 //packing

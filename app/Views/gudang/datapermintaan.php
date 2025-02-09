@@ -7,9 +7,9 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Data Permintaan</h5>
-                    <form action="">
+                    <form action="<?= base_url($role . '/datapermintaan') ?>" method="post">
                         <div class="row mb-2">
-                            <label for="cari" class="col-sm-2 col-form-label">No Model / Jalur</label>
+                            <label for="cari" class="col-sm-2 col-form-label">No Model</label>
                             <div class="col-sm-2">
                                 <input class="form-control" type="text" name="cari1">
                             </div>
@@ -173,18 +173,18 @@
         const maxKirim = button.getAttribute('data-max_kirim');
 
         // Log data untuk debugging
-    console.log('Data Modal:', {
-        packing,
-        noModel,
-        area,
-        idAnak,
-        inisial,
-        tglMinta,
-        tglJalan,
-        qtyMinta,
-        idMinta,
-        maxKirim
-    });
+        console.log('Data Modal:', {
+            packing,
+            noModel,
+            area,
+            idAnak,
+            inisial,
+            tglMinta,
+            tglJalan,
+            qtyMinta,
+            idMinta,
+            maxKirim
+        });
 
         // Isi input di dalam modal dengan nilai dari atribut
         const inputPacking = pengeluaranModal.querySelector('input[name="packing"]');

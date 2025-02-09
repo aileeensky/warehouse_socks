@@ -7,9 +7,9 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Data Terkirim</h5>
-                    <form action="">
+                    <form action="<?= base_url($role . '/dataterkirim') ?>" method="post">
                         <div class="row mb-2">
-                            <label for="cari" class="col-sm-2 col-form-label">No Model / Jalur</label>
+                            <label for="cari" class="col-sm-2 col-form-label">No Model</label>
                             <div class="col-sm-2">
                                 <input class="form-control" type="text" name="cari1">
                             </div>
@@ -50,6 +50,7 @@
                             ?>
                                 <tr>
                                     <th scope="row"><?= $no ?></th>
+                                    <td><?= $data['tgl_keluar'] ?></td>
                                     <td><?= $data['tgl_minta'] ?></td>
                                     <td><?= $data['tgl_jalan'] ?></td>
                                     <td><?= $data['area_packing'] ?></td>
@@ -61,7 +62,6 @@
                                     <td><?= $data['qty_minta'] ?></td>
                                     <td><?= $data['qty_keluar'] ?></td>
                                     <td><?= $data['tagihan'] ?></td>
-                                    <td><?= $data['qty_keluar'] - $data['qty_minta'] ?></td>
                                 </tr>
                             <?php
                                 $no++;
