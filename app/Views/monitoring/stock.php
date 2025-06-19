@@ -31,51 +31,9 @@
                 <div class="card-body">
                     <h5 class="card-title">Stock Gudang</h5>
                     <div style="display: flex; align-items: center;">
-                        <div class="col-md-1">
-                            <!-- Small Modal -->
-                            <i class="bx bx-plus-circle" style="font-size: 22px;" data-bs-toggle="modal" data-bs-target="#inputjalurModal"><span>Jalur</span></i>
-
-                            <div class="modal fade" id="inputjalurModal" tabindex="-1">
-                                <div class="modal-dialog modal-sm">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title"><i></i>Input Jalur</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <form action="<?= base_url('/' . $role . '/inputjalur') ?>" method="post">
-                                            <div class="modal-body">
-                                                <div class="col-12">
-                                                    <label for="jalur" class="form-label">Jalur</label>
-                                                    <input type="text" class="form-control" name="jalur">
-                                                </div>
-                                                <div class="col-12">
-                                                    <label for="kapasitas" class="form-label">Kapasitas Box</label>
-                                                    <input type="text" class="form-control" name="kapasitas">
-                                                </div>
-                                                <div class="col-12">
-                                                    <label for="gd_setting" class="form-label">Gd Setting</label>
-                                                    <select class="form-select" name="gd_setting" aria-label="Default select example">
-                                                        <option selected></option>
-                                                        <option value="GD SETTING">GD SETTING</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-12">
-                                                    <label for="ket" class="form-label">Keterangan</label>
-                                                    <textarea type="text" class="form-control" name="ket"></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary">Save</button>
-                                            </div>
-                                        </form><!-- Vertical Form -->
-                                    </div>
-                                </div>
-                            </div><!-- End Small Modal-->
-                        </div>
                         <div class="col-md-2">
                             <!-- Icon Excel -->
-                            <a class="nav-link collapsed" href="">
+                            <a class="nav-link collapsed" href="<?= base_url($role . '/excelstockgudang') ?>">
                                 <i class="ri-file-excel-line" style="font-size: 30px;"></i>
                             </a>
                         </div>
@@ -87,12 +45,13 @@
                             <tr>
                                 <th scope="col">No</th>
                                 <th scope="col">Jalur</th>
+                                <th scope="col">Kapasitas</th>
                                 <th scope="col">Space</th>
                                 <th scope="col">Qty Jalur</th>
                                 <th scope="col">Box</th>
                                 <th scope="col">No Model</th>
                                 <th scope="col">Keterangan</th>
-                                <th scope="col">Edit</th>
+                                <th scope="col">Detail</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -102,12 +61,13 @@
                                 <tr>
                                     <th scope="row"><?= $no ?></th>
                                     <td><?= $data['jalur'] ?></td>
+                                    <td><?= $data['jumlah_box'] ?></td>
                                     <td><?= $data['space'] ?></td>
                                     <td><?= $data['qty_stock'] ?></td>
                                     <td><?= $data['box_stock'] ?></td>
                                     <td><?= $data['no_model'] ?></td>
                                     <td><?= $data['keterangan'] ?></td>
-                                    <td><i class="ri-edit-line"></td>
+                                    <td><a href="<?= base_url('/' . $role . '/detailstock/' . $data['jalur']) ?>"><i class="bi bi-eye"></a></td>
                                 </tr>
                             <?php
                                 $no++;
@@ -115,11 +75,13 @@
                         </tbody>
                     </table>
                     <!-- End Table with stripped rows -->
-
                 </div>
             </div>
 
         </div>
     </div>
 </section>
+<script>
+</script>
+
 <?php $this->endSection(); ?>

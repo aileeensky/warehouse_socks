@@ -29,7 +29,7 @@
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-cart"></i>
+                                    <i class="ri-stock-line"></i>
                                 </div>
                                 <div class="ps-3">
                                     <h6><?= $stock ?: 0; ?></h6>
@@ -64,7 +64,7 @@
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-currency-dollar"></i>
+                                    <i class="bi bi-box-arrow-in-down-right"></i>
                                 </div>
                                 <div class="ps-3">
                                     <h6><?= $pemasukan ?: 0; ?></h6>
@@ -100,7 +100,7 @@
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-people"></i>
+                                    <i class="bi bi-cart"></i>
                                 </div>
                                 <div class="ps-3">
                                     <h6><?= $permintaan ?: 0; ?></h6>
@@ -137,7 +137,7 @@
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-people"></i>
+                                    <i class="bi bi-box-arrow-in-up-right"></i>
                                 </div>
                                 <div class="ps-3">
                                     <h6><?= $pengeluaran ?: 0; ?></h6>
@@ -176,19 +176,21 @@
 
                             <script>
                                 document.addEventListener("DOMContentLoaded", () => {
+                                    let chartData = <?= $chartData ?>;
+
                                     new ApexCharts(document.querySelector("#reportsChart"), {
                                         series: [{
                                             name: 'Stock',
-                                            data: [31, 40, 28, 51, 42, 82, 56],
+                                            data: chartData.stock
                                         }, {
                                             name: 'Pemasukan',
-                                            data: [11, 32, 45, 32, 34, 52, 41]
+                                            data: chartData.pemasukan
                                         }, {
                                             name: 'Permintaan',
-                                            data: [11, 12, 39, 16, 9, 29, 3]
+                                            data: chartData.permintaan
                                         }, {
                                             name: 'Pengeluaran',
-                                            data: [15, 11, 32, 18, 9, 24, 11]
+                                            data: chartData.pengeluaran
                                         }],
                                         chart: {
                                             height: 350,
@@ -218,12 +220,12 @@
                                             width: 2
                                         },
                                         xaxis: {
-                                            type: 'datetime',
-                                            categories: ["2018-09-19T00:00:00.000Z", "2018-09-19T01:30:00.000Z", "2018-09-19T02:30:00.000Z", "2018-09-19T03:30:00.000Z", "2018-09-19T04:30:00.000Z", "2018-09-19T05:30:00.000Z", "2018-09-19T06:30:00.000Z"]
+                                            type: 'category',
+                                            categories: chartData.dates
                                         },
                                         tooltip: {
                                             x: {
-                                                format: 'dd/MM/yy HH:mm'
+                                                format: 'yyyy-MM-dd'
                                             },
                                         }
                                     }).render();

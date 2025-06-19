@@ -18,7 +18,17 @@ $routes->group('/monitoring', ['filter' => 'monitoring'], function ($routes) {
     $routes->get('account', 'MonitoringController::account');
     $routes->post('inputuser', 'MonitoringController::inputUser');
     $routes->get('stock', 'MonitoringController::stock');
+    $routes->get('detailstock/(:any)', 'MonitoringController::detailStock/$1');
     $routes->post('inputjalur', 'MonitoringController::inputJalur');
+
+    $routes->get('editpemasukan', 'MonitoringController::editPemasukan');
+    $routes->post('editpemasukan', 'MonitoringController::editPemasukan');
+    $routes->get('editpengeluaran', 'MonitoringController::reportPengeluaran');
+    $routes->post('editpengeluaran', 'MonitoringController::reportPengeluaran');
+
+    //report
+    $routes->get('excelstockgudang', 'ExcelController::excelStockGudang');
+    $routes->post('excelreportpemasukan', 'ExcelController::excelReportPemasukan');
 });
 
 //gudang
@@ -27,6 +37,8 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->get('inputdatabase', 'GudangController::inputNoModel');
     $routes->post('importdatabase', 'GudangController::importDatabase');
     $routes->get('stock', 'GudangController::stock');
+    $routes->get('inputstockcluster', 'GudangController::inputStockCluster');
+    $routes->get('dataorder', 'GudangController::dataOrder');
     $routes->get('stockmodal/(:num)', 'GudangController::getStockModal/$1');
     $routes->post('inputstock', 'GudangController::inputStock');
     $routes->get('detailstock/(:any)', 'GudangController::detailStock/$1');

@@ -15,6 +15,9 @@ use App\Models\TabelIndukModel;
 use App\Models\UserModel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use DateTime;
+use DatePeriod;
+use DateInterval;
 
 class PackingController extends BaseController
 {
@@ -52,9 +55,89 @@ class PackingController extends BaseController
     public function index()
     {
         $role = session()->get('role');
+        $today = date('Y-m-d');
+        $startDate = date('Y-m-d', strtotime('-6 days'));
+
+        // Data Hari Ini
+        $totalStock = $this->stockModel->selectSum('qty_stock')->get()->getRow()->qty_stock;
+        $totalPemasukan = $this->pemasukanModel
+            ->selectSum('qty_masuk')
+            ->where('DATE(created_at)', $today)
+            ->get()
+            ->getRow()
+            ->qty_masuk;
+        $totalPermintaan = $this->permintaanModel
+            ->selectSum('qty_minta')
+            ->where('DATE(created_at)', $today)
+            ->get()
+            ->getRow()
+            ->qty_minta;
+        $totalPengeluaran = $this->pengeluaranModel
+            ->selectSum('qty_keluar')
+            ->where('DATE(created_at)', $today)
+            ->get()
+            ->getRow()
+            ->qty_keluar;
+
+        // Data untuk Chart (7 Hari Terakhir)
+        $dates = [];
+        $stockData = [];
+        $pemasukanData = [];
+        $permintaanData = [];
+        $pengeluaranData = [];
+
+        $datePeriod = new DatePeriod(
+            new DateTime($startDate),
+            new DateInterval('P1D'),
+            new DateTime($today . ' 23:59:59')
+        );
+
+        foreach ($datePeriod as $date) {
+            $dateStr = $date->format('Y-m-d');
+            $dates[] = $dateStr;
+
+            $stock = $this->stockModel->selectSum('qty_stock')->get()->getRow()->qty_stock;
+            $pemasukan = $this->pemasukanModel
+                ->selectSum('qty_masuk')
+                ->where('DATE(created_at)', $dateStr)
+                ->get()
+                ->getRow()
+                ->qty_masuk ?? 0;
+            $permintaan = $this->permintaanModel
+                ->selectSum('qty_minta')
+                ->where('DATE(created_at)', $dateStr)
+                ->get()
+                ->getRow()
+                ->qty_minta ?? 0;
+            $pengeluaran = $this->pengeluaranModel
+                ->selectSum('qty_keluar')
+                ->where('DATE(created_at)', $dateStr)
+                ->get()
+                ->getRow()
+                ->qty_keluar ?? 0;
+
+            $stockData[] = (int) $stock;
+            $pemasukanData[] = (int) $pemasukan;
+            $permintaanData[] = (int) $permintaan;
+            $pengeluaranData[] = (int) $pengeluaran;
+        }
+
+        // Data untuk Chart (7 Hari)
+        $chartData = json_encode([
+            'dates' => $dates,
+            'stock' => $stockData,
+            'pemasukan' => $pemasukanData,
+            'permintaan' => $permintaanData,
+            'pengeluaran' => $pengeluaranData,
+        ]);
 
         $data = [
             'role' => $role,
+            'stock' => $totalStock,
+            'pemasukan' => $totalPemasukan,
+            'permintaan' => $totalPermintaan,
+            'pengeluaran' => $totalPengeluaran,
+            'chartData' => $chartData,
         ];
         return view($role . '/index', $data);
     }

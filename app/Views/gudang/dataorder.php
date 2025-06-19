@@ -29,21 +29,12 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Stock Gudang</h5>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <!-- Button Input Stock -->
+                    <h5 class="card-title">Data Order</h5>
+                    <div style="display: flex; align-items: center;">
                         <div class="col-md-2">
-                            <a href="<?= base_url($role . '/inputstockcluster') ?>" class="btn btn-primary" style="display: flex; align-items: center;">
-                                <i class="ri-add-circle-line" style="font-size: 20px; margin-right: 5px;"></i>
-                                Input Stock
-                            </a>
-                        </div>
-
-                        <!-- Icon Excel -->
-                        <div class="col-md-2">
-                            <a href="<?= base_url($role . '/excelstockgudang') ?>" class="btn btn-success" style="display: flex; align-items: center;">
-                                <i class="ri-file-excel-line" style="font-size: 20px; margin-right: 5px;"></i>
-                                Export Excel
+                            <!-- Icon Excel -->
+                            <a class="nav-link collapsed" href="<?= base_url($role . '/excelstockgudang') ?>">
+                                <i class="ri-file-excel-line" style="font-size: 30px;"></i>
                             </a>
                         </div>
                     </div>

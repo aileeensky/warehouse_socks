@@ -2,108 +2,86 @@
 <?php $this->section('content'); ?>
 <section class="section">
     <div class="row">
-        <?php if (session()->getFlashdata('success')) : ?>
-            <script>
-                $(document).ready(function() {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: '<?= session()->getFlashdata('success') ?>',
-                    });
-                });
-            </script>
-        <?php endif; ?>
-
-        <?php if (session()->getFlashdata('error')) : ?>
-            <script>
-                $(document).ready(function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: '<?= session()->getFlashdata('error') ?>',
-                    });
-                });
-            </script>
-        <?php endif; ?>
         <div class="col-lg-12">
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Stock Gudang</h5>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <!-- Button Input Stock -->
-                        <div class="col-md-2">
-                            <a href="<?= base_url($role . '/inputstockcluster') ?>" class="btn btn-primary" style="display: flex; align-items: center;">
-                                <i class="ri-add-circle-line" style="font-size: 20px; margin-right: 5px;"></i>
-                                Input Stock
-                            </a>
+                    <h5 class="card-title"><?= $title ?></h5>
+                    <form action="<?= base_url($role . '/editpemasukan') ?>" method="post">
+                        <div class="row mb-2">
+                            <label for="cari" class="col-sm-2 col-form-label">No Model</label>
+                            <div class="col-sm-2">
+                                <input class="form-control" type="text" name="cari1">
+                            </div>
+                            <label for="cari2" class="col-sm-1 col-form-label">Tgl Masuk</label>
+                            <div class="col-sm-2">
+                                <input class="form-control" type="date" name="cari2">
+                            </div>
+                            <div class="col-sm-2">
+                                <button class="btn btn-info">Search</button>
+                            </div>
                         </div>
-
-                        <!-- Icon Excel -->
-                        <div class="col-md-2">
-                            <a href="<?= base_url($role . '/excelstockgudang') ?>" class="btn btn-success" style="display: flex; align-items: center;">
-                                <i class="ri-file-excel-line" style="font-size: 20px; margin-right: 5px;"></i>
-                                Export Excel
-                            </a>
-                        </div>
-                    </div>
+                        <button class="nav-link collapsed" type="submit" formaction="<?= base_url($role . '/excelreportpemasukan') ?>">
+                            <i class="ri-file-excel-line" style="font-size: 30px;"></i>
+                        </button>
+                    </form>
                     <p></p>
                     <!-- Table with stripped rows -->
                     <table class="table datatable">
                         <thead>
                             <tr>
                                 <th scope="col">No</th>
-                                <th scope="col">Jalur</th>
-                                <th scope="col">Kapasitas</th>
-                                <th scope="col">Space</th>
-                                <th scope="col">Qty Jalur</th>
-                                <th scope="col">Box</th>
+                                <th scope="col">Tgl Masuk</th>
+                                <th scope="col">Area</th>
+                                <th scope="col">Buyer</th>
                                 <th scope="col">No Model</th>
+                                <th scope="col">In</th>
+                                <th scope="col">Style</th>
+                                <th scope="col">Qty Masuk</th>
+                                <th scope="col">Box Masuk</th>
                                 <th scope="col">Keterangan</th>
-                                <th scope="col">Detail</th>
-                                <th scope="col">Tambah</th>
+                                <th scope="col">Edit</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                             $no = 1;
-                            foreach ($jalur as $data) : ?>
+                            foreach ($dataMasuk as $dt) : ?>
                                 <tr>
-                                    <th scope="row"><?= $no ?></th>
-                                    <td><?= $data['jalur'] ?></td>
-                                    <td><?= $data['jumlah_box'] ?></td>
-                                    <td><?= $data['space'] ?></td>
-                                    <td><?= $data['qty_stock'] ?></td>
-                                    <td><?= $data['box_stock'] ?></td>
-                                    <td><?= $data['no_model'] ?></td>
-                                    <td><?= $data['keterangan'] ?></td>
-                                    <td><a href="<?= base_url('/' . $role . '/detailstock/' . $data['jalur']) ?>"><i class="bi bi-eye"></a></td>
-                                    <td><i class="bx bx-plus-medical" data-bs-toggle="modal" data-bs-target="#inputstockModal" data-jalur="<?= $data['jalur'] ?>" data-no_model="<?= $data['no_model'] ?>" data-space="<?= $data['space'] ?>"></i></td>
+                                    <th scope="row"><?= $no++ ?></th>
+                                    <td><?= $dt['created_at'] ?></td>
+                                    <td><?= $dt['area'] ?></td>
+                                    <td><?= $dt['kode_buyer'] ?></td>
+                                    <td><?= $dt['no_model'] ?></td>
+                                    <td><?= $dt['inisial'] ?></td>
+                                    <td><?= $dt['style'] ?></td>
+                                    <td><?= $dt['qty_masuk'] ?></td>
+                                    <td><?= $dt['box_masuk'] ?></td>
+                                    <td><?= $dt['ket_masuk'] ?></td>
+                                    <td><i class="ri-edit-line" data-bs-toggle="modal" data-bs-target="#editPemasukanModal" data-id_masuk="<?= $dt['id_masuk'] ?>" data-tgl_masuk="<?= $dt['created_at'] ?>" data-area="<?= $dt['area'] ?>" data-kode_buyer="<?= $dt['kode_buyer'] ?>" data-nomodel="<?= $dt['no_model'] ?>" data-inisial="<?= $dt['inisial'] ?>" data-style="<?= $dt['style'] ?>" data-qty_masuk="<?= $dt['qty_masuk'] ?>" data-kode_buyer="<?= $dt['box_masuk'] ?>" data-ket_masuk="<?= $dt['ket_masuk'] ?>"></td>
                                 </tr>
-                            <?php
-                                $no++;
-                            endforeach; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                     <!-- End Table with stripped rows -->
                     <!-- Basic Modal -->
-                    <div class="modal fade" id="inputstockModal" tabindex="-1">
+                    <div class="modal fade" id="editPemasukanModal" tabindex="-1">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Input Stock</h5>
+                                    <h5 class="modal-title">Edit Pemasukan</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <form action="<?= base_url('/' . $role . '/inputstock') ?>" method="post">
+                                <form action="<?= base_url('/' . $role . '/editpemasukan') ?>" method="post">
                                     <div class="modal-body">
                                         <input type="hidden" name="admin" value="<?= $admin ?>">
                                         <div class="col-12">
-                                            <label for="jalur" class="form-label">Jalur</label>
-                                            <input type="text" class="form-control" name="jalur" readonly>
+                                            <label for="tgl_masuk" class="form-label">Tgl Masuk</label>
+                                            <input type="text" class="form-control" name="tgl_masuk" readonly>
                                         </div>
                                         <div class="col-12">
-                                            <label for="space" class="form-label">Space</label>
-                                            <input type="text" class="form-control" name="space" value="<?= $data['space'] ?>" readonly>
+                                            <label for="area" class="form-label">Area</label>
+                                            <input type="text" class="form-control" name="space" value="<?= $data['area'] ?>" readonly>
                                         </div>
                                         <div class="col-12">
                                             <label for="no_model" class="form-label">No Model</label>
@@ -157,13 +135,12 @@
                     </div><!-- End Basic Modal-->
                 </div>
             </div>
-
         </div>
     </div>
 </section>
 <script>
-    const inputStockModal = document.getElementById('inputstockModal');
-    inputStockModal.addEventListener('show.bs.modal', function(event) {
+    const editPemasukanModal = document.getElementById('editPemasukanModal');
+    editPemasukanModal.addEventListener('show.bs.modal', function(event) {
         // Tombol yang memicu modal
         const button = event.relatedTarget;
 
@@ -173,9 +150,9 @@
         const space = button.getAttribute('data-space');
 
         // Isi input di dalam modal dengan nilai dari atribut
-        const inputJalur = inputStockModal.querySelector('input[name="jalur"]');
-        const inputNoModel = inputStockModal.querySelector('select[name="no_model"]');
-        const inputSpace = inputStockModal.querySelector('input[name="space"]');
+        const inputJalur = editPemasukanModal.querySelector('input[name="jalur"]');
+        const inputNoModel = editPemasukanModal.querySelector('select[name="no_model"]');
+        const inputSpace = editPemasukanModal.querySelector('input[name="space"]');
 
         inputJalur.value = jalur;
         inputNoModel.value = noModel;
@@ -223,5 +200,4 @@
         }
     }
 </script>
-
 <?php $this->endSection(); ?>

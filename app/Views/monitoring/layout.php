@@ -188,13 +188,18 @@
                         </a>
                     </li>
                     <li>
-                        <a href="<?= base_url('/' . $role . '/reportpemasukan') ?>">
+                        <a href="<?= base_url('/' . $role . '/editpemasukan') ?>">
                             <i class="bi bi-circle"></i><span>Edit Pemasukkan</span>
                         </a>
                     </li>
                     <li>
-                        <a href="<?= base_url('/' . $role . '/reportpengeluaran') ?>">
+                        <a href="<?= base_url('/' . $role . '/editpengeluaran') ?>">
                             <i class="bi bi-circle"></i><span>Edit Pengeluaran</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= base_url('/' . $role . '/stock') ?>">
+                            <i class="bi bi-circle"></i><span>Stock</span>
                         </a>
                     </li>
                 </ul>
@@ -212,24 +217,6 @@
                     </li>
                 </ul>
             </li><!-- End Packing Nav -->
-
-            <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#report-nav" data-bs-toggle="collapse" href="#">
-                    <i class="bi bi-file-earmark-arrow-down"></i><span>Report</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <ul id="report-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                    <li>
-                        <a href="<?= base_url('/' . $role . '/reportpemasukan') ?>">
-                            <i class="bi bi-circle"></i><span>Report Pemasukkan</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= base_url('/' . $role . '/reportpengeluaran') ?>">
-                            <i class="bi bi-circle"></i><span>Report Pengeluaran</span>
-                        </a>
-                    </li>
-                </ul>
-            </li><!-- End Icons Nav -->
         </ul>
 
     </aside><!-- End Sidebar-->
