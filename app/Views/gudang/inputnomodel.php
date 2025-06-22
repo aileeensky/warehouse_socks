@@ -39,6 +39,13 @@
                             <div class="col-sm-2">
                                 <button class="btn btn-info" type="submit">Save</button>
                             </div>
+                            <!-- Icon Excel -->
+                            <div class="col-sm-2">
+                                <a href="<?= base_url($role . '/exceldataorder') ?>" class="btn btn-success" style="display: flex; align-items: center;">
+                                    <i class="ri-file-excel-line" style="font-size: 20px; margin-right: 5px;"></i>
+                                    Export Excel
+                                </a>
+                            </div>
                         </div>
                     </form>
                     <p></p>
