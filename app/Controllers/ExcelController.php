@@ -205,4 +205,88 @@ class ExcelController extends BaseController
         $writer->save('php://output');
         exit;
     }
+
+    public function excelDataOrder()
+    {
+        $role = session()->get('role');
+        $dataOrder = $this->TabelAnakModel->getSelect();
+
+        // Load PhpSpreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set judul laporan
+        $sheet->setCellValue('A1', 'Laporan Pemasukan Barang');
+        $sheet->mergeCells('A1:J1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Header tabel
+        $columns = [
+            'A' => 'No',
+            'B' => 'Waktu Input',
+            'C' => 'Area',
+            'D' => 'Buyer',
+            'E' => 'No Model',
+            'F' => 'In',
+            'G' => 'Style',
+            'H' => 'Qty Masuk',
+            'I' => 'Box Masuk',
+            'J' => 'Keterangan'
+        ];
+
+        foreach ($columns as $col => $value) {
+            $sheet->setCellValue($col . '3', $value);
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+            $sheet->getStyle($col . '3')->getFont()->setBold(true);
+            $sheet->getStyle($col . '3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        }
+
+        // Isi data dari database dimulai dari baris ke-4
+        $row = 4;
+        $no = 1;
+        foreach ($dataOrder as $dt) {
+            $sheet->setCellValue('A' . $row, $no);
+            $sheet->setCellValue('B' . $row, $dt['created_at']);
+            $sheet->setCellValue('C' . $row, $dt['area']);
+            $sheet->setCellValue('D' . $row, $dt['kode_buyer']);
+            $sheet->setCellValue('E' . $row, $dt['no_model']);
+            $sheet->setCellValue('F' . $row, $dt['inisial']);
+            $sheet->setCellValue('G' . $row, $dt['style']);
+            $sheet->setCellValue('H' . $row, $dt['qty_masuk']);
+            $sheet->setCellValue('I' . $row, $dt['box_masuk']);
+            $sheet->setCellValue('J' . $row, $dt['ket_masuk']);
+
+            // Align center untuk semua data
+            foreach (range('A', 'J') as $col) {
+                $sheet->getStyle($col . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            }
+
+            $row++;
+            $no++;
+        }
+
+        // Styling tabel (border)
+        $styleArray = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ];
+        $sheet->getStyle('A3:J' . ($row - 1))->applyFromArray($styleArray);
+
+        // Nama file
+        $fileName = 'Report_Pemasukan.xlsx';
+
+        // Set header untuk download file
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
 }

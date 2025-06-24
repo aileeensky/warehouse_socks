@@ -52,6 +52,7 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->post('getStockByIdAnak', 'GudangController::getStockByIdAnak');
 
     //report
+    $routes->get('exceldataorder', 'ExcelController::excelDataOrder');
     $routes->get('excelstockgudang', 'ExcelController::excelStockGudang');
     $routes->post('excelreportpemasukan', 'ExcelController::excelReportPemasukan');
 });

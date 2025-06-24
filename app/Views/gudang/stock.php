@@ -31,6 +31,14 @@
                 <div class="card-body">
                     <h5 class="card-title">Stock Gudang</h5>
                     <div style="display: flex; align-items: center; gap: 10px;">
+                        <!-- Button Import Stock -->
+                        <div class="col-md-2">
+                            <a href="<?= base_url($role . '/impotstockcluster') ?>" class="btn btn-primary" style="display: flex; align-items: center;" data-bs-toggle="modal" data-bs-target="#importstockModal">
+                                <i class="ri-upload-cloud-line me-2" style="font-size: 20px; margin-right: 5px;"></i>
+                                Import Stock
+                            </a>
+                        </div>
+
                         <!-- Button Input Stock -->
                         <div class="col-md-2">
                             <a href="<?= base_url($role . '/inputstockcluster') ?>" class="btn btn-primary" style="display: flex; align-items: center;">
@@ -145,6 +153,31 @@
                                         <div class="col-12">
                                             <label for="keterangan" class="form-label">Keterangan</label>
                                             <textarea class="form-control" name="keterangan"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div><!-- End Basic Modal-->
+                    <!-- Import Modal -->
+                    <div class="modal fade" id="importstockModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Import Stock</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form action="<?= base_url('/' . $role . '/importstock') ?>" method="post">
+                                    <div class="modal-body">
+                                        <input type="hidden" name="admin" value="<?= $admin ?>">
+                                        <div class="mb-3">
+                                            <label for="file" class="form-label">Pilih File</label>
+                                            <input type="file" class="form-control" name="file" id="file" accept=".xlsx,.xls,.csv" required>
+                                            <small class="text-muted">Format yang didukung: .xlsx, .xls, .csv</small>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
