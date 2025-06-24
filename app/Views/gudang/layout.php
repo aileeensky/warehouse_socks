@@ -184,12 +184,6 @@
             </li><!-- End Forms Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/dataorder') ?>">
-                    <i class="bi bi-box"></i><span>Input Stock Clustering</span></i>
-                </a>
-            </li><!-- End Forms Nav -->
-
-            <li class="nav-item">
                 <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/datapermintaan') ?>">
                     <i class="ri-file-list-3-line"></i><span>Data Permintaan</span>
                 </a>

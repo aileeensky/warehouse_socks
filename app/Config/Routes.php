@@ -38,7 +38,6 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->post('importdatabase', 'GudangController::importDatabase');
     $routes->get('stock', 'GudangController::stock');
     $routes->get('inputstockcluster', 'GudangController::inputStockCluster');
-    $routes->get('dataorder', 'GudangController::dataOrder');
     $routes->get('stockmodal/(:num)', 'GudangController::getStockModal/$1');
     $routes->post('inputstock', 'GudangController::inputStock');
     $routes->get('detailstock/(:any)', 'GudangController::detailStock/$1');

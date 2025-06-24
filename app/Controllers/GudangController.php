@@ -313,22 +313,6 @@ class GudangController extends BaseController
         return view($role . '/inputstock', $data);
     }
 
-    public function dataOrder()
-    {
-        $admin = session()->get('username');
-        $role = session()->get('role');
-        $dataJalur = $this->layoutModel->getDataJalur();
-        $dataNomodel = $this->indukModel->selectNomodel();
-
-        $data = [
-            'role' => $role,
-            'jalur' => $dataJalur,
-            'pdk' => $dataNomodel,
-            'admin' => $admin,
-        ];
-        return view($role . '/dataorder', $data);
-    }
-
     public function getStockModal($id)
     {
         $dataAnak = $this->anakModel->getData($id);

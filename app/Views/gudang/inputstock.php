@@ -1,137 +1,168 @@
 <?php $this->extend($role . '/layout'); ?>
 <?php $this->section('content'); ?>
 <section class="section">
-    <div class="row">
-        <?php if (session()->getFlashdata('success')) : ?>
-            <script>
-                $(document).ready(function() {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: '<?= session()->getFlashdata('success') ?>',
-                    });
-                });
-            </script>
-        <?php endif; ?>
+    <div class="row justify-content-center">
+        <div class="col-lg-12 col-md-10 col-sm-12">
 
-        <?php if (session()->getFlashdata('error')) : ?>
-            <script>
-                $(document).ready(function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: '<?= session()->getFlashdata('error') ?>',
+            <!-- Flashdata SweetAlert: bisa dipindahkan ke layout utama atau partial -->
+            <?php if (session()->getFlashdata('success') || session()->getFlashdata('error')) : ?>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        <?php if (session()->getFlashdata('success')): ?>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: <?= json_encode(session()->getFlashdata('success')) ?>,
+                            });
+                        <?php endif; ?>
+                        <?php if (session()->getFlashdata('error')): ?>
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: <?= json_encode(session()->getFlashdata('error')) ?>,
+                            });
+                        <?php endif; ?>
                     });
-                });
-            </script>
-        <?php endif; ?>
-        <div class="col-lg-12">
+                </script>
+            <?php endif; ?>
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Input Stock</h5>
-                    <div style="display: flex; align-items: center;">
-                        <div class="col-md-2">
-                            <!-- Icon Excel -->
-                            <a class="nav-link collapsed" href="<?= base_url($role . '/excelstockgudang') ?>">
-                                <i class="ri-file-excel-line" style="font-size: 30px;"></i>
-                            </a>
-                        </div>
-                    </div>
+                    <h5 class="card-title mb-4">Input Stock</h5>
 
-                    <form action="">
+                    <form action="<?= base_url($role . '/inputstock') ?>" method="post">
+                        <?= csrf_field() ?>
+
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="no_model">No Model</label>
-                                    <select class="form-control" id="no_model" name="no_model" onchange="selectModel()">
-                                        <option selected></option>
+                                <div class="mb-3">
+                                    <label for="no_model" class="form-label">No Model</label>
+                                    <select class="form-select" id="no_model" name="no_model" onchange="selectModel()" required>
+                                        <option value="" selected disabled>Pilih No Model</option>
+                                        <!-- Option diisi dari server atau AJAX -->
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="inisial">Inisial</label>
-                                    <select class="form-control" id="inisial" name="inisial">
-                                        <option selected></option>
-                                        <!-- Inisial akan diisi melalui AJAX -->
+                                <div class="mb-3">
+                                    <label for="inisial" class="form-label">Inisial</label>
+                                    <select class="form-select" id="inisial" name="inisial" required>
+                                        <option value="" selected disabled>Pilih Inisial</option>
+                                        <!-- Inisial akan diisi via AJAX berdasarkan no_model -->
                                     </select>
-                                    <input type="hidden" name="id_anak" value="">
+                                    <input type="hidden" id="id_anak" name="id_anak" value="">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="qty_masuk" class="form-label">Qty Masuk (Dz)</label>
+                                    <input type="number" class="form-control" id="qty_masuk" name="qty_masuk" min="0" step="1" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="jalur">Area</label>
-                                    <input type="text" class="form-control" id="area" name="area">
+                                <div class="mb-3">
+                                    <label for="area" class="form-label">Area</label>
+                                    <input type="text" class="form-control" id="area" name="area" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="style_size" class="form-label">Style Size</label>
+                                    <input type="text" class="form-control" id="style_size" name="style_size" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="box_masuk" class="form-label">Box Masuk</label>
+                                    <input type="number" class="form-control" id="box_masuk" name="box_masuk" min="0" step="1" required>
                                 </div>
                             </div>
                         </div>
-                    </form>
 
+                        <div class="mb-3">
+                            <label for="keterangan" class="form-label">Keterangan</label>
+                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <!-- Tombol submit biasa -->
+                            <button type="submit" class="btn btn-primary">
+                                Simpan
+                            </button>
+                            <!-- Tombol aksi clustering -->
+                            <button type="button" class="btn btn-info" onclick="arahkanKeCluster()">
+                                Arahkan ke Cluster
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
         </div>
     </div>
 </section>
+
+<!-- Skrip JS: letakkan di bagian bawah halaman atau dalam file terpisah -->
 <script>
-    const inputStockModal = document.getElementById('inputstockModal');
-    inputStockModal.addEventListener('show.bs.modal', function(event) {
-        // Tombol yang memicu modal
-        const button = event.relatedTarget;
+    // Contoh: fungsi dipanggil saat no_model diubah
+    function selectModel() {
+        const noModel = document.getElementById('no_model').value;
+        if (!noModel) return;
+        // Lakukan AJAX untuk mendapatkan inisial dan id_anak
+        fetch("<?= base_url($role . '/getInisialByModel') ?>/" + encodeURIComponent(noModel))
+            .then(response => response.json())
+            .then(data => {
+                const inisialSelect = document.getElementById('inisial');
+                inisialSelect.innerHTML = '<option value="" disabled selected>Pilih Inisial</option>';
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.inisial; // sesuaikan field
+                    opt.textContent = item.inisial; // sesuaikan tampilan
+                    opt.dataset.idAnak = item.id_anak; // misal ada id_anak
+                    inisialSelect.appendChild(opt);
+                });
+            })
+            .catch(err => console.error(err));
+    }
 
-        // Ambil data dari atribut data-*
-        const jalur = button.getAttribute('data-jalur');
-        const noModel = button.getAttribute('data-no_model');
-        const space = button.getAttribute('data-space');
-
-        // Isi input di dalam modal dengan nilai dari atribut
-        const inputJalur = inputStockModal.querySelector('input[name="jalur"]');
-        const inputNoModel = inputStockModal.querySelector('select[name="no_model"]');
-        const inputSpace = inputStockModal.querySelector('input[name="space"]');
-
-        inputJalur.value = jalur;
-        inputNoModel.value = noModel;
-        inputSpace.value = space;
+    // Tangkap perubahan inisial untuk set hidden id_anak (jika perlu)
+    document.getElementById('inisial').addEventListener('change', function() {
+        const selectedOpt = this.options[this.selectedIndex];
+        const idAnak = selectedOpt.dataset.idAnak || '';
+        document.getElementById('id_anak').value = idAnak;
     });
 
-    function selectModel() {
-        var noModelId = document.querySelector('select[name="no_model"]').value;
+    // Fungsi Arahkan ke Cluster: misal submit via AJAX untuk menghitung cluster
+    function arahkanKeCluster() {
+        const form = document.querySelector('form');
+        const formData = new FormData(form);
 
-        if (noModelId !== "") {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "<?= base_url('/' . $role . '/stockmodal/') ?>" + noModelId, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    var response = JSON.parse(xhr.responseText);
-
-                    var areaSelect = document.querySelector('select[name="area"]');
-                    var inisialSelect = document.querySelector('select[name="inisial"]');
-                    var idAnakInput = document.querySelector('input[name="id_anak"]');
-                    areaSelect.innerHTML = '<option selected></option>';
-                    inisialSelect.innerHTML = '<option selected></option>';
-
-                    response.area.forEach(function(area) {
-                        var option = document.createElement('option');
-                        option.value = area;
-                        option.text = area;
-                        areaSelect.appendChild(option);
+        // Contoh AJAX POST ke endpoint clustering
+        fetch("<?= base_url($role . '/calculateCluster') ?>", {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    '<?= csrf_header() ?>': '<?= csrf_token() ?>'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                // Tampilkan hasil cluster, misalnya di modal atau alert
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Cluster Ditetapkan',
+                        text: 'Cluster: ' + result.clusterName,
                     });
-
-                    response.inisial.forEach(function(item) {
-                        var option = document.createElement('option');
-                        option.value = item.id_anak; // Set value ke id_anak
-                        option.text = item.inisial; // Tampilkan teks sebagai inisial
-                        inisialSelect.appendChild(option);
-                    });
-
-                    // Update id_anak saat inisial dipilih
-                    inisialSelect.addEventListener('change', function() {
-                        var selectedOption = inisialSelect.options[inisialSelect.selectedIndex];
-                        idAnakInput.value = selectedOption.value; // Set value id_anak ke input
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: result.message || 'Tidak dapat menentukan cluster',
                     });
                 }
-            };
-            xhr.send();
-        }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Terjadi kesalahan saat menghitung cluster',
+                });
+            });
     }
 </script>
 
