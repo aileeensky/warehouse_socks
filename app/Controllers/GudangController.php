@@ -223,12 +223,14 @@ class GudangController extends BaseController
                 } else {
                     $formattedDeliveryDate = Date::excelToDateTimeObject($deliveryDate)->format('Y-m-d');
                 }
+                $smvRaw = $row[8];
+                $smvFormatted = str_replace(',', '.', trim($smvRaw));
 
                 $data = [
                     'no_order' => $row[3],
                     'no_model' => $row[4],
                     'kode_buyer' => $row[2],
-                    'smv' => $row[8],
+                    'smv' => is_numeric($smvFormatted) ? (float)$smvFormatted : 0,
                     'delivery' => $formattedDeliveryDate,
                     'admin' => $admin,
                 ];
@@ -248,6 +250,9 @@ class GudangController extends BaseController
                 $existingAnak = $anak->where('id_induk', $id_induk)->where('style', $style)->first();
                 $waktu_input = (new DateTime())->format('Y-m-d H:i:s');
 
+                $qtyRaw = $row[9];
+                $qtyFormatted = str_replace(',', '.', trim($qtyRaw));
+
                 if (!$existingAnak) {
                     $data2 = [
                         'id_induk' => $id_induk,
@@ -256,7 +261,7 @@ class GudangController extends BaseController
                         'inisial' => $row[5],
                         'style' => $style,
                         'warna' => $row[7],
-                        'qty_po_inisial' => $row[9],
+                        'qty_po_inisial' => is_numeric($qtyFormatted) ? (float)$qtyFormatted : 0,
                         'admin' => $admin,
                     ];
 
@@ -547,5 +552,230 @@ class GudangController extends BaseController
         ];
 
         return view($role . '/reportpengeluaran', $data);
+    }
+
+    // public function importStock() 
+    // {
+    //     $admin = session()->get('username');
+    //     $file = $this->request->getFile('file');
+
+    //     $stylesNotInserted = []; // Variabel untuk menyimpan style yang tidak berhasil diinsert
+    //     $totalInserted = 0;
+
+    //     if ($file && $file->isValid() && !$file->hasMoved()) {
+    //         log_message('info', 'File uploaded: ' . $file->getName());
+
+    //         $filePath = WRITEPATH . 'uploads/' . $file->getName();
+    //         $file->move(WRITEPATH . 'uploads');
+
+    //         try {
+    //             $spreadsheet = IOFactory::load($filePath);
+    //             $sheet = $spreadsheet->getActiveSheet();
+    //             $dataRows = $sheet->toArray();
+    //             log_message('info', 'Number of data rows: ' . count($dataRows));
+    //         } catch (\Exception $e) {
+    //             log_message('error', 'Error reading Excel file: ' . $e->getMessage());
+    //             return redirect()->back()->with('error', 'Error reading Excel file.');
+    //         }
+
+    //         $dataKey = [];
+    //         foreach ($dataRows as $index => $row) {
+    //             // Lewati header atau baris pertama
+    //             if ($index === 0) {
+    //                 continue;
+    //             }
+
+    //             // Validasi untuk kolom yang penting
+    //             if (empty($row[4]) || empty($row[12]) || empty($row[21]) || empty($row[26])) {
+    //                 log_message('info', 'Skipping row ' . ($index + 1) . ' due to empty required fields.');
+    //                 continue; // Lewati jika kolom penting kosong
+    //             }
+
+    //             $dataKey[] = [$row[4] . ';' . $row[21] . ';' . $row[26] => 0];
+
+    //             $dataInduk = $this->indukModel->select('id_induk, delivery')->where('no_model', $row[21])->first();
+    //             if (!$dataInduk) {
+    //                 log_message('info', 'Skipping row ' . ($index + 1) . ' due to no_model not found.');
+    //                 continue; // Lewati jika no_model tidak ditemukan
+    //             }
+
+    //             $dataAnak = $this->anakModel->select('id_anak')->where('id_induk', $dataInduk['id_induk'])->where('area', $row[26])->where('style', $row[4])->first();
+    //             if (!$dataAnak) {
+    //                 log_message('info', 'Skipping row ' . ($index + 1) . ' due to id_anak not found.');
+    //                 continue; // Lewati jika id_anak tidak ditemukan
+    //             }
+
+    //             $dataStock = $this->stockModel->select('id_stock')->where('id_anak', $dataAnak['id_anak'])->first();
+    //             if (!$dataStock) {
+    //                 log_message('info', 'Skipping row ' . ($index + 1) . ' due to id_stock not found.');
+    //                 continue; // Lewati jika id_anak tidak ditemukan
+    //             }
+
+    //             $thisMonth = new DateTime('now');
+    //             $add2Month = $thisMonth->modify('+2 month')->format('Y-m-d');
+    //             $add2Month = $thisMonth->modify('+3 month')->format('Y-m-d');
+
+    //             // $thisMonth->modify('+2 month');
+    //             // $thisMonth = $thisMonth->format('Y-m-d');
+
+    //             if ($dataInduk['delivery'] > $thisMonth && $dataInduk['delivery'] < $add2Month) {
+    //             }
+
+    //         }
+
+    //         // Hapus file setelah proses selesai
+    //         unlink($filePath);
+
+    //     }
+    // }
+
+    public function importStock()
+    {
+        $admin  = session()->get('username');
+        $file   = $this->request->getFile('file');
+        $today  = new \DateTime('now');
+
+        // Array untuk menampung titik‐titik data yang nanti akan di–cluster
+        $points = [];
+
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $filePath = WRITEPATH . 'uploads/' . $file->getName();
+            $file->move(WRITEPATH . 'uploads');
+
+            // Baca spreadsheet
+            $sheet = IOFactory::load($filePath)->getActiveSheet()->toArray(null, true, true, true);
+
+            // Loop data Excel
+            foreach (array_slice($sheet, 1) as $idx => $row) {
+                // Validasi minimal
+                if (empty($row[4]) || empty($row[12]) || empty($row[21]) || empty($row[26])) {
+                    continue;
+                }
+
+                // Cari induk & anak
+                $dataInduk = $this->indukModel
+                    ->select('id_induk, delivery, buyer')
+                    ->where('no_model', $row[21])
+                    ->first();
+                if (! $dataInduk) continue;
+
+                $dataAnak = $this->anakModel
+                    ->select('id_anak')
+                    ->where('id_induk', $dataInduk['id_induk'])
+                    ->where('area', $row[26])
+                    ->where('style', $row[4])
+                    ->first();
+                if (! $dataAnak) continue;
+
+                $stock = $this->stockModel
+                    ->select('id_stock')
+                    ->where('id_anak', $dataAnak['id_anak'])
+                    ->first();
+                if (! $stock) continue;
+
+                // Hitung days_to_export
+                $delivDate = new \DateTime($dataInduk['delivery']);
+                $daysToExp = $today->diff($delivDate)->days;
+
+                // Masukkan ke points: nanti dipakai clustering
+                $points[] = [
+                    'id_stock' => $stock['id_stock'],
+                    'buyer'    => $dataInduk['buyer'],    // teks
+                    'days'     => $daysToExp,             // numerik
+                ];
+            }
+
+            // Hapus file upload
+            unlink($filePath);
+
+            if (empty($points)) {
+                return redirect()->back()->with('error', 'Tidak ada data valid untuk diimport.');
+            }
+
+            //
+            // ——————— PREPROCESSING ———————
+            //
+
+            // 1) Label-encode buyer
+            $buyers = array_unique(array_column($points, 'buyer'));
+            $encode = array_flip($buyers); // e.g. ['AILEEN'=>0, 'BUDI'=>1,...]
+
+            foreach ($points as &$p) {
+                $p['bcode'] = $encode[$p['buyer']];
+            }
+            unset($p);
+
+            // 2) Normalisasi Min‑Max
+            $bcArr = array_column($points, 'bcode');
+            $dyArr = array_column($points, 'days');
+            $minB = min($bcArr);
+            $maxB = max($bcArr);
+            $minD = min($dyArr);
+            $maxD = max($dyArr);
+
+            foreach ($points as &$p) {
+                $p['nb'] = ($p['bcode'] - $minB) / max(1, $maxB - $minB);
+                $p['nd'] = ($p['days']  - $minD) / max(1, $maxD - $minD);
+            }
+            unset($p);
+
+            //
+            // ——————— K‑MEANS (k=3) ———————
+            //
+            $k       = 3;
+            $eps     = 0.001;
+            $maxIter = 100;
+
+            // Inisialisasi centroid acak
+            $keys      = array_rand($points, $k);
+            $centroids = [];
+            foreach ($keys as $i) {
+                $centroids[] = ['x' => $points[$i]['nb'], 'y' => $points[$i]['nd']];
+            }
+
+            // Iterasi assign dan recompute
+            for ($iter = 0; $iter < $maxIter; $iter++) {
+                // a) Assign
+                foreach ($points as &$pt) {
+                    $dists = array_map(
+                        fn($c) =>
+                        sqrt(($pt['nb'] - $c['x']) ** 2 + ($pt['nd'] - $c['y']) ** 2),
+                        $centroids
+                    );
+                    $pt['cluster'] = array_search(min($dists), $dists);
+                }
+                unset($pt);
+
+                // b) Recompute
+                $sums = array_fill(0, $k, ['sx' => 0, 'sy' => 0, 'cnt' => 0]);
+                foreach ($points as $pt) {
+                    $i = $pt['cluster'];
+                    $sums[$i]['sx']  += $pt['nb'];
+                    $sums[$i]['sy']  += $pt['nd'];
+                    $sums[$i]['cnt']++;
+                }
+                $changed = false;
+                foreach ($sums as $i => $val) {
+                    if ($val['cnt'] === 0) continue;
+                    $nx = $val['sx'] / $val['cnt'];
+                    $ny = $val['sy'] / $val['cnt'];
+                    if (abs($nx - $centroids[$i]['x']) > $eps || abs($ny - $centroids[$i]['y']) > $eps) {
+                        $changed = true;
+                    }
+                    $centroids[$i] = ['x' => $nx, 'y' => $ny];
+                }
+                if (! $changed) break;
+            }
+
+            //
+            // ——————— SIMPAN HASIL CLUSTER ———————
+            //
+            foreach ($points as $pt) {
+                $this->stockModel
+                    ->update($pt['id_stock'], ['cluster_id' => $pt['cluster'] + 1]);
+            }
+
+            return redirect()->back()->with('success', 'Import & clustering selesai!');
+        }
     }
 }

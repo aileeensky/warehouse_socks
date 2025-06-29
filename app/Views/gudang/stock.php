@@ -171,9 +171,8 @@
                                     <h5 class="modal-title">Import Stock</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <form action="<?= base_url('/' . $role . '/importstock') ?>" method="post">
+                                <form action="<?= base_url('/' . $role . '/importstock') ?>" method="post" enctype="multipart/form-data">
                                     <div class="modal-body">
-                                        <input type="hidden" name="admin" value="<?= $admin ?>">
                                         <div class="mb-3">
                                             <label for="file" class="form-label">Pilih File</label>
                                             <input type="file" class="form-control" name="file" id="file" accept=".xlsx,.xls,.csv" required>
