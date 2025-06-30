@@ -97,3 +97,194 @@ for ($iter = 0; $iter < $maxIter; $iter++) {
 
     return $result;
     }
+
+
+
+
+    public function importStock()
+    {
+    $admin = session()->get('username');
+    $file = $this->request->getFile('file');
+    $today = new \DateTime('now');
+
+    // Array untuk menampung titik‐titik data yang nanti akan di–cluster
+    $points = [];
+
+    if ($file && $file->isValid() && !$file->hasMoved()) {
+    $filePath = WRITEPATH . 'uploads/' . $file->getName();
+    $file->move(WRITEPATH . 'uploads');
+
+    // Baca spreadsheet
+    $sheet = IOFactory::load($filePath)
+    ->getActiveSheet()
+    ->toArray(null, true, true, true);
+
+    // Loop data Excel
+    foreach (array_slice($sheet, 17) as $idx => $row) {
+    $lineno = $idx + 2; // Excel baris ke‑nya
+    // 1) DEBUG: print baris
+    echo "<strong>Baris {$lineno}:</strong> ";
+    print_r($row);
+    echo "<br />";
+
+    // 2) Validasi minimal
+    if (empty($row['E']) || empty($row['M']) || empty($row['V']) || empty($row['AA'])) {
+    echo " → GAGAL validasi kolom E/M/V/AA<br /><br />";
+    continue;
+    }
+
+    echo " → Lolos validasi kolom<br />";
+
+    // 3) Query induk
+    $dataInduk = $this->indukModel
+    ->select('id_induk, delivery, kode_buyer')
+    ->where('no_model', $row['V'])
+    ->first();
+    if (! $dataInduk) {
+    echo " → GAGAL: no_model '{$row['V']}' tidak ditemukan di tabel_induk<br /><br />";
+    continue;
+    }
+    echo " → Ditemukan INDUK (id_induk={$dataInduk['id_induk']})<br />";
+
+    // 4) Query anak
+    $dataAnak = $this->anakModel
+    ->select('id_anak')
+    ->where('id_induk', $dataInduk['id_induk'])
+    ->where('area', $row['AA'])
+    ->where('style', $row['E'])
+    ->first();
+    if (! $dataAnak) {
+    echo " → GAGAL: anak (area='{$row['AA']}', style='{$row['E']}') tidak ditemukan<br /><br />";
+    continue;
+    }
+    echo " → Ditemukan ANAK (id_anak={$dataAnak['id_anak']})<br />";
+
+    // 5) Query stock
+    $stock = $this->stockModel
+    ->select('id_stock')
+    ->where('id_anak', $dataAnak['id_anak'])
+    ->first();
+    if (! $stock) {
+    // Jika stock tidak ada, skip baris ini
+    echo " → SKIP baris {$idx}: stock untuk id_anak={$dataAnak['id_anak']} tidak ditemukan<br />";
+    continue;
+    }
+
+    // Kalau stock ditemukan, update qty_stock
+    $tambahQty = floatval($row['M']) / 24;
+    $newQty = floatval($stock['qty_stock']) + $tambahQty;
+
+    $this->stockModel->update(
+    $stock['id_stock'],
+    ['qty_stock' => $newQty]
+    );
+
+    echo " → UPDATE STOCK id_stock={$stock['id_stock']}: qty_stock {$stock['qty_stock']} + {$tambahQty} = {$newQty}<br />";
+
+    // Hitung days_to_export
+    $delivDate = new \DateTime($dataInduk['delivery']);
+    $daysToExp = $today->diff($delivDate)->days;
+
+    // Masukkan ke points: nanti dipakai clustering
+    $points[] = [
+    'id_stock' => $stock['id_stock'],
+    'buyer' => $dataInduk['buyer'], // teks
+    'days' => $daysToExp, // numerik
+    ];
+    }
+    exit;
+    var_dump($points);
+
+    // Hapus file upload
+    unlink($filePath);
+
+    if (empty($points)) {
+    return redirect()->back()->with('error', 'Tidak ada data valid untuk diimport.');
+    }
+
+    //
+    // ——————— PREPROCESSING ———————
+    //
+
+    // 1) Label-encode buyer
+    $buyers = array_unique(array_column($points, 'buyer'));
+    $encode = array_flip($buyers); // e.g. ['AILEEN'=>0, 'BUDI'=>1,...]
+
+    foreach ($points as &$p) {
+    $p['bcode'] = $encode[$p['buyer']];
+    }
+    unset($p);
+
+    // 2) Normalisasi Min‑Max
+    $bcArr = array_column($points, 'bcode');
+    $dyArr = array_column($points, 'days');
+    $minB = min($bcArr);
+    $maxB = max($bcArr);
+    $minD = min($dyArr);
+    $maxD = max($dyArr);
+
+    foreach ($points as &$p) {
+    $p['nb'] = ($p['bcode'] - $minB) / max(1, $maxB - $minB);
+    $p['nd'] = ($p['days'] - $minD) / max(1, $maxD - $minD);
+    }
+    unset($p);
+
+    //
+    // ——————— K‑MEANS (k=3) ———————
+    //
+    $k = 3;
+    $eps = 0.001;
+    $maxIter = 100;
+
+    // Inisialisasi centroid acak
+    $keys = array_rand($points, $k);
+    $centroids = [];
+    foreach ($keys as $i) {
+    $centroids[] = ['x' => $points[$i]['nb'], 'y' => $points[$i]['nd']];
+    }
+
+    // Iterasi assign dan recompute
+    for ($iter = 0; $iter < $maxIter; $iter++) {
+        // a) Assign
+        foreach ($points as &$pt) {
+        $dists=array_map(
+        fn($c)=>
+        sqrt(($pt['nb'] - $c['x']) ** 2 + ($pt['nd'] - $c['y']) ** 2),
+        $centroids
+        );
+        $pt['cluster'] = array_search(min($dists), $dists);
+        }
+        unset($pt);
+
+        // b) Recompute
+        $sums = array_fill(0, $k, ['sx' => 0, 'sy' => 0, 'cnt' => 0]);
+        foreach ($points as $pt) {
+        $i = $pt['cluster'];
+        $sums[$i]['sx'] += $pt['nb'];
+        $sums[$i]['sy'] += $pt['nd'];
+        $sums[$i]['cnt']++;
+        }
+        $changed = false;
+        foreach ($sums as $i => $val) {
+        if ($val['cnt'] === 0) continue;
+        $nx = $val['sx'] / $val['cnt'];
+        $ny = $val['sy'] / $val['cnt'];
+        if (abs($nx - $centroids[$i]['x']) > $eps || abs($ny - $centroids[$i]['y']) > $eps) {
+        $changed = true;
+        }
+        $centroids[$i] = ['x' => $nx, 'y' => $ny];
+        }
+        if (! $changed) break;
+        }
+
+        //
+        // ——————— SIMPAN HASIL CLUSTER ———————
+        //
+        foreach ($points as $pt) {
+        $this->stockModel
+        ->update($pt['id_stock'], ['cluster_id' => $pt['cluster'] + 1]);
+        }
+
+        return redirect()->back()->with('success', 'Import & clustering selesai!');
+        }
+        }
