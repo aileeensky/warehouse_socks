@@ -699,6 +699,7 @@ class GudangController extends BaseController
                         'id_anak' => $dataAnak['id_anak'],
                         'buyer'    => $dataInduk['buyer'],
                         'days'     => $daysToExp,
+                        'qty'     => floatval($qty) / 24,
                     ];
                 }
             }
@@ -809,17 +810,46 @@ class GudangController extends BaseController
 
             // split tiap klaster ke jalur berkapasitas 80
             $layoutCursor = 0;
+            $adminUser    = session()->get('username');
             foreach (array_keys($centroidDays) as $clusterIdx) {
                 $members = array_filter($points, fn($p) => $p['cluster'] == $clusterIdx);
                 $batches = array_chunk($members, 80);
+
                 foreach ($batches as $batch) {
-                    if (! isset($layouts[$layoutCursor])) break;
-                    $jalurKey  = $layouts[$layoutCursor++]['jalur'];
+                    if (! isset($layouts[$layoutCursor])) {
+                        break 2;  // semua layout sudah dipakai
+                    }
+
+                    $jalurKey = $layouts[$layoutCursor++]['jalur'];
+                    $now      = date('Y-m-d H:i:s');
+
                     foreach ($batch as $pt) {
-                        // update stock baru dengan layout_id
-                        $this->stockModel->update($pt['id_anak'], [
-                            'jalur' => $jalurKey
-                        ]);
+                        // 1) Insert ke stock
+                        $dataStock = [
+                            'id_anak'    => $pt['id_anak'],
+                            'created_at' => $now,
+                            'qty_stock'  => 0,
+                            'box_stock'  => 0,
+                            'jalur'      => $jalurKey,
+                            'gd_setting' => 'GD SETTING',
+                            'admin'      => $adminUser,
+                        ];
+                        $insertStock = $this->stockModel->insert($dataStock);
+
+                        // 2) Kalau insert stock berhasil, insert ke pemasukan
+                        if ($insertStock !== false) {
+                            $dataMasuk = [
+                                'id_anak'    => $pt['id_anak'],
+                                'created_at' => $now,
+                                // pastikan kamu simpan juga 'qty' di $points jika mau akses di sini
+                                'qty_masuk'  => $pt['qty'],
+                                'box_masuk'  => 1,
+                                'jalur'      => $jalurKey,
+                                'gd_setting' => 'GD SETTING',
+                                'admin'      => $adminUser,
+                            ];
+                            $this->pemasukanModel->insert($dataMasuk);
+                        }
                     }
                 }
             }
