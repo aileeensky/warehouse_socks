@@ -173,7 +173,7 @@
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/inputdatabase') ?>">
-                    <i class="ri-database-2-line"></i><span>Input Database</span></i>
+                    <i class="ri-database-2-line"></i><span>Data Order</span></i>
                 </a>
             </li><!-- End Components Nav -->
 

@@ -29,10 +29,10 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Input Database</h5>
+                    <h5 class="card-title">Data Order</h5>
                     <form action="<?= base_url('/' . $role . '/importdatabase') ?>" method="post" enctype="multipart/form-data">
                         <div class="row mb-3">
-                            <label for="formFile" class="col-sm-2 col-form-label">File Upload</label>
+                            <label for="formFile" class="col-sm-2 col-form-label">Import Data Order</label>
                             <div class="col-sm-3">
                                 <input class="form-control" type="file" name="file">
                             </div>
