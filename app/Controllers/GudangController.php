@@ -911,7 +911,8 @@ class GudangController extends BaseController
             $points[] = [(float)$row['days'], (float)$row['qty']];
         }
         $kmeans = new KMeans(200);
-        d($kmeans->cluster($points));
+        $clusters = $kmeans->cluster($points);
+        d($clusters);
         die;
 
         // 3) Agregasi per id_anak: total qty & hitung unik box_count
