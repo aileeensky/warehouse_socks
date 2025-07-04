@@ -172,46 +172,22 @@
             </li><!-- End Dashboard Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/account') ?>">
-                    <i class="ri-account-circle-line"></i><span>Account</span></i>
+                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/stock') ?>">
+                    <i class="bi bi-box"></i><span>Stock</span></i>
                 </a>
-            </li><!-- End Create Nav -->
+            </li><!-- End Forms Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#gudang-nav" data-bs-toggle="collapse" href="#">
-                    <i class="ri-file-list-3-line"></i><span>Gudang</span><i class="bi bi-chevron-down ms-auto"></i>
+                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/schedule') ?>">
+                    <i class="bi bi-calendar2-week"></i><span>Schedule</span>
                 </a>
-                <ul id="gudang-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                    <li>
-                        <a href="<?= base_url('/' . $role . '/editpemasukan') ?>">
-                            <i class="bi bi-circle"></i><span>Edit Pemasukkan</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= base_url('/' . $role . '/editpengeluaran') ?>">
-                            <i class="bi bi-circle"></i><span>Edit Pengeluaran</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= base_url('/' . $role . '/stock') ?>">
-                            <i class="bi bi-circle"></i><span>Stock</span>
-                        </a>
-                    </li>
-                </ul>
-            </li><!-- End Gudang Nav -->
+            </li><!-- End Tables Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#packing-nav" data-bs-toggle="collapse" href="#">
-                    <i class="ri-file-list-3-line"></i><span>Packing</span><i class="bi bi-chevron-down ms-auto"></i>
+                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/statuspermintaan') ?>">
+                    <i class="ri-file-list-3-line"></i><span>Status Permintaan</span>
                 </a>
-                <ul id="packing-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                    <li>
-                        <a href="<?= base_url('/' . $role . '/reportpemasukan') ?>">
-                            <i class="bi bi-circle"></i><span>Edit Permintaan</span>
-                        </a>
-                    </li>
-                </ul>
-            </li><!-- End Packing Nav -->
+            </li><!-- End Charts Nav -->
         </ul>
 
     </aside><!-- End Sidebar-->
