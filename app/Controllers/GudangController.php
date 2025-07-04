@@ -654,7 +654,7 @@ class GudangController extends BaseController
             $style = trim($row['E']  ?? '');
             $qty   = trim($row['M']  ?? '');
             $model = trim($row['V']  ?? '');
-            $boxId = trim($row['X']  ?? '');  // <— pakai kolom X
+            $boxId = trim($row['X']  ?? '');
 
             // skip jika data wajib kosong
             if ($area === '' || $style === '' || $qty === '' || $model === '' || $boxId === '') {
@@ -694,6 +694,7 @@ class GudangController extends BaseController
             $daysToExp = $today->diff(new \DateTime($dataInduk['delivery']))->days;
             $pointsRaw[] = [
                 'id_anak' => $dataAnak['id_anak'],
+                'model'    => $model,
                 'buyer'   => $dataInduk['buyer'],
                 'days'    => $daysToExp,
                 'qty'     => floatval($qty) / 24,
@@ -713,6 +714,7 @@ class GudangController extends BaseController
                 $agg[$id] = [
                     'id_anak' => $id,
                     'buyer'   => $p['buyer'],
+                    'model'    => $p['model'],
                     'days'    => $p['days'],
                     'qty'     => $p['qty'],
                     'boxes'   => [],
@@ -726,6 +728,7 @@ class GudangController extends BaseController
         foreach ($agg as $v) {
             $points[] = [
                 'id_anak'   => $v['id_anak'],
+                'model'    => $v['model'],
                 'buyer'     => $v['buyer'],
                 'days'      => $v['days'],
                 'qty'       => $v['qty'],
@@ -733,7 +736,7 @@ class GudangController extends BaseController
             ];
         }
 
-        // 4) Proses clustering & upsert ke stock + insert ke pemasukan
+        // 4) Clustering (K-Means berdasarkan days)
         $layouts = $this->layoutModel->orderBy('jalur', 'ASC')->findAll();
         $k       = count($layouts);
 
@@ -745,10 +748,41 @@ class GudangController extends BaseController
         }
         unset($p);
 
-        // normalisasi, inisialisasi centroid, iterasi K‑means…
-        // (sama seperti sebelumnya, hasilnya $points dengan kunci 'cluster')
+        // inisialisasi centroid pada rentang [0..1]
+        $centroids = [];
+        for ($i = 0; $i < $k; $i++) {
+            $centroids[] = ['y' => $i / ($k - 1)];
+        }
 
-        // mapping ke layout & upsert:
+        // iterasi K-Means
+        $eps = 0.001;
+        $maxIter = 100;
+        for ($iter = 0; $iter < $maxIter; $iter++) {
+            // assign
+            foreach ($points as &$pt) {
+                $distances = array_map(fn($c) => abs($pt['nd'] - $c['y']), $centroids);
+                $pt['cluster'] = (int) array_keys($distances, min($distances))[0];
+            }
+            unset($pt);
+            // recompute
+            $sums = array_fill(0, $k, ['sy' => 0, 'cnt' => 0]);
+            foreach ($points as $pt) {
+                $c = $pt['cluster'];
+                $sums[$c]['sy'] += $pt['nd'];
+                $sums[$c]['cnt']++;
+            }
+            $moved = false;
+            foreach ($sums as $iC => $v) {
+                if ($v['cnt'] === 0) continue;
+                $newY = $v['sy'] / $v['cnt'];
+                if (abs($newY - $centroids[$iC]['y']) > $eps) $moved = true;
+                $centroids[$iC]['y'] = $newY;
+            }
+            if (! $moved) break;
+        }
+
+        // 5) Penempatan + prioritas model
+        $layouts      = $this->layoutModel->orderBy('jalur', 'ASC')->findAll();
         $layoutCursor = 0;
         $now          = date('Y-m-d H:i:s');
         foreach ($points as $pt) {
