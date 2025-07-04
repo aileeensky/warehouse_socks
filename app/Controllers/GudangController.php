@@ -18,7 +18,7 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 use DateTime;
 use DatePeriod;
 use DateInterval;
-
+use Phpml\Clustering\KMeans;
 
 class GudangController extends BaseController
 {
@@ -629,7 +629,7 @@ class GudangController extends BaseController
     //     }
     // }
 
-    public function importStock()
+    public function importStockBackup()
     {
         $admin = session()->get('username');
         $file  = $this->request->getFile('file');
@@ -825,6 +825,216 @@ class GudangController extends BaseController
                 'gd_setting' => 'GD SETTING',
                 'admin' => $admin,
             ]);
+        }
+
+        return redirect()->back()->with('success', 'Import & clustering selesai!');
+    }
+
+    public function importStock()
+    {
+        $admin = session()->get('username');
+        $file  = $this->request->getFile('file');
+        $today = new \DateTime('now');
+
+        if (! $file || ! $file->isValid() || $file->hasMoved()) {
+            return redirect()->back()->with('error', 'File tidak valid.');
+        }
+
+        // 1) Upload & load sheet
+        $filePath = WRITEPATH . 'uploads/' . $file->getName();
+        $file->move(WRITEPATH . 'uploads');
+        $sheetArr = IOFactory::load($filePath)
+            ->getActiveSheet()
+            ->toArray(null, true, true, true);
+        unlink($filePath);
+
+        // 2) Kumpulkan semua baris yang belum punya stock
+        $pointsRaw = [];
+        foreach (array_slice($sheetArr, 17, null, true) as $idx => $row) {
+            $area  = trim($row['AA'] ?? '');
+            $style = trim($row['E']  ?? '');
+            $qty   = trim($row['M']  ?? '');
+            $model = trim($row['V']  ?? '');
+            $boxId = trim($row['X']  ?? '');
+
+            if ($area === '' || $style === '' || $qty === '' || $model === '' || $boxId === '') {
+                continue;
+            }
+
+            // cek induk & anak
+            $dataInduk = $this->indukModel
+                ->select('id_induk, delivery, kode_buyer AS buyer')
+                ->where('no_model', $model)
+                ->first();
+            if (!$dataInduk) continue;
+
+            $dataAnak = $this->anakModel
+                ->select('id_anak')
+                ->where('id_induk', $dataInduk['id_induk'])
+                ->where('area',     $area)
+                ->where('style',    $style)
+                ->first();
+            if (!$dataAnak) continue;
+
+            // jika sudah ada stock, update langsung dan skip clustering
+            $stock = $this->stockModel
+                ->select('id_stock, qty_stock, box_stock')
+                ->where('id_anak', $dataAnak['id_anak'])
+                ->first();
+            if ($stock) {
+                $addQty = floatval($qty) / 24;
+                $this->stockModel->update($stock['id_stock'], [
+                    'qty_stock' => $stock['qty_stock'] + $addQty,
+                    'box_stock' => $stock['box_stock'] + 1,
+                ]);
+                continue;
+            }
+
+            // belum ada stock → simpan raw point
+            $daysToExp = $today->diff(new \DateTime($dataInduk['delivery']))->days;
+            $pointsRaw[] = [
+                'id_anak' => $dataAnak['id_anak'],
+                'model'   => $model,
+                'days'    => $daysToExp,
+                'qty'     => floatval($qty) / 24,
+                'box_id'  => $boxId,
+            ];
+        }
+
+        if (empty($pointsRaw)) {
+            return redirect()->back()->with('success', 'Semua baris sudah ter‐update stock‑nya.');
+        }
+        
+        // Implementasi K-Means clustering
+        $points = [];
+        foreach ($pointsRaw as $row) {
+            $points[] = [(float)$row['days'], (float)$row['qty']];
+        }
+        $kmeans = new KMeans(200);
+        d($kmeans->cluster($points));
+        die;
+
+        // 3) Agregasi per id_anak: total qty & hitung unik box_count
+        $agg = [];
+        foreach ($pointsRaw as $p) {
+            $id = $p['id_anak'];
+            if (!isset($agg[$id])) {
+                $agg[$id] = [
+                    'id_anak' => $id,
+                    'model'   => $p['model'],
+                    'days'    => $p['days'],
+                    'qty'     => $p['qty'],
+                    'boxes'   => [],
+                ];
+            } else {
+                $agg[$id]['qty'] += $p['qty'];
+            }
+            $agg[$id]['boxes'][$p['box_id']] = true;
+        }
+        $points = [];
+        foreach ($agg as $v) {
+            $points[] = [
+                'id_anak'   => $v['id_anak'],
+                'model'      => $v['model'],
+                'days'      => $v['days'],
+                'qty'       => $v['qty'],
+                'box_count' => count($v['boxes']),
+            ];
+        }
+
+        // 4) Clustering K-Means hanya berdasarkan 'days'
+        $k = count($this->layoutModel->findAll());
+        // normalisasi days
+        $daysArr = array_column($points, 'days');
+        $minD = min($daysArr);
+        $maxD = max($daysArr);
+        foreach ($points as &$p) {
+            $p['nd'] = ($p['days'] - $minD) / max(1, $maxD - $minD);
+        }
+        unset($p);
+
+        // inisialisasi centroid pada rentang [0..1]
+        $centroids = [];
+        for ($i = 0; $i < $k; $i++) {
+            $centroids[] = ['y' => $i / ($k - 1)];
+        }
+
+        // iterasi K-Means
+        $eps = 0.001;
+        $maxIter = 100;
+        for ($iter = 0; $iter < $maxIter; $iter++) {
+            // assign
+            foreach ($points as &$pt) {
+                $distances = array_map(fn($c) => abs($pt['nd'] - $c['y']), $centroids);
+                $pt['cluster'] = (int) array_keys($distances, min($distances))[0];
+            }
+            unset($pt);
+            // recompute
+            $sums = array_fill(0, $k, ['sy' => 0, 'cnt' => 0]);
+            foreach ($points as $pt) {
+                $c = $pt['cluster'];
+                $sums[$c]['sy'] += $pt['nd'];
+                $sums[$c]['cnt']++;
+            }
+            $moved = false;
+            foreach ($sums as $iC => $v) {
+                if ($v['cnt'] === 0) continue;
+                $newY = $v['sy'] / $v['cnt'];
+                if (abs($newY - $centroids[$iC]['y']) > $eps) $moved = true;
+                $centroids[$iC]['y'] = $newY;
+            }
+            if (! $moved) break;
+        }
+
+        // 5) Penempatan + prioritas model
+        $layouts      = $this->layoutModel->orderBy('jalur', 'ASC')->findAll();
+        $layoutCursor = 0;
+        $now          = date('Y-m-d H:i:s');
+        foreach ($points as $pt) {
+            // cek jalur existing dengan model sama dan kapasitas
+            $stocks = $this->stockModel
+                ->where('id_anak', $pt['id_anak'])
+                ->findAll();
+            $chosen = null;
+            foreach ($stocks as $stk) {
+                if ($stk['box_stock'] + $pt['box_count'] <= 80) {
+                    $chosen = $stk['jalur'];
+                    break;
+                }
+            }
+            // jika tidak ada, ambil jalur baru
+            if (!$chosen) {
+                if (!isset($layouts[$layoutCursor])) break;
+                $chosen = $layouts[$layoutCursor++]['jalur'];
+            }
+            // upsert stock
+            $exist = $this->stockModel->where('id_anak', $pt['id_anak'])->where('jalur', $chosen)->first();
+            if ($exist) {
+                // $this->stockModel->update($exist['id_stock'], [
+                //     'qty_stock' => $exist['qty_stock'] + $pt['qty'],
+                //     'box_stock' => $exist['box_stock'] + $pt['box_count'],
+                // ]);
+            } else {
+                // $this->stockModel->insert([
+                //     'id_anak' => $pt['id_anak'],
+                //     'created_at' => $now,
+                //     'qty_stock' => $pt['qty'],
+                //     'box_stock' => $pt['box_count'],
+                //     'jalur' => $chosen,
+                //     'gd_setting' => 'GD SETTING',
+                //     'admin' => $admin,
+                // ]);
+            }
+            // insert pemasukan
+            // $this->pemasukanModel->insert([
+            //     'id_anak' => $pt['id_anak'],
+            //     'created_at' => $now,
+            //     'qty_masuk' => $pt['qty'],
+            //     'box_masuk' => $pt['box_count'],
+            //     'jalur' => $chosen,
+            //     'gd_setting' => 'GD SETTING',
+            //     'admin' => $admin,
+            // ]);
         }
 
         return redirect()->back()->with('success', 'Import & clustering selesai!');

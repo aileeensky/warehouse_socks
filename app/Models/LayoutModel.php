@@ -52,6 +52,7 @@ class LayoutModel extends Model
             ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
             // ->where('layout.status <> FALSE')
             ->groupBy('layout.jalur')
+            ->groupBy('tabel_induk.no_model')
             ->orderBy('layout.jalur', 'ASC')
             ->findAll();
     }
