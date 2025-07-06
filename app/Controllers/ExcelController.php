@@ -132,7 +132,7 @@ class ExcelController extends BaseController
         $sheet = $spreadsheet->getActiveSheet();
 
         // Set judul laporan
-        $sheet->setCellValue('A1', 'Laporan Pemasukan Barang');
+        $sheet->setCellValue('A1', 'Report Pemasukan');
         $sheet->mergeCells('A1:J1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
@@ -209,15 +209,15 @@ class ExcelController extends BaseController
     public function excelDataOrder()
     {
         $role = session()->get('role');
-        $dataOrder = $this->TabelAnakModel->getSelect();
+        $dataOrder = $this->anakModel->getSelect();
 
         // Load PhpSpreadsheet
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
         // Set judul laporan
-        $sheet->setCellValue('A1', 'Laporan Pemasukan Barang');
-        $sheet->mergeCells('A1:J1');
+        $sheet->setCellValue('A1', 'Data Order');
+        $sheet->mergeCells('A1:L1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
@@ -225,14 +225,16 @@ class ExcelController extends BaseController
         $columns = [
             'A' => 'No',
             'B' => 'Waktu Input',
-            'C' => 'Area',
-            'D' => 'Buyer',
-            'E' => 'No Model',
-            'F' => 'In',
-            'G' => 'Style',
-            'H' => 'Qty Masuk',
-            'I' => 'Box Masuk',
-            'J' => 'Keterangan'
+            'C' => 'No Order',
+            'D' => 'Area',
+            'E' => 'Buyer',
+            'F' => 'No Model',
+            'G' => 'In',
+            'H' => 'Style',
+            'I' => 'Color',
+            'J' => 'Delivery',
+            'K' => 'Qty PO',
+            'L' => 'Admin'
         ];
 
         foreach ($columns as $col => $value) {
@@ -247,18 +249,20 @@ class ExcelController extends BaseController
         $no = 1;
         foreach ($dataOrder as $dt) {
             $sheet->setCellValue('A' . $row, $no);
-            $sheet->setCellValue('B' . $row, $dt['created_at']);
-            $sheet->setCellValue('C' . $row, $dt['area']);
-            $sheet->setCellValue('D' . $row, $dt['kode_buyer']);
-            $sheet->setCellValue('E' . $row, $dt['no_model']);
-            $sheet->setCellValue('F' . $row, $dt['inisial']);
-            $sheet->setCellValue('G' . $row, $dt['style']);
-            $sheet->setCellValue('H' . $row, $dt['qty_masuk']);
-            $sheet->setCellValue('I' . $row, $dt['box_masuk']);
-            $sheet->setCellValue('J' . $row, $dt['ket_masuk']);
+            $sheet->setCellValue('B' . $row, $dt['waktu_input']);
+            $sheet->setCellValue('C' . $row, $dt['no_order']);
+            $sheet->setCellValue('D' . $row, $dt['area']);
+            $sheet->setCellValue('E' . $row, $dt['kode_buyer']);
+            $sheet->setCellValue('F' . $row, $dt['no_model']);
+            $sheet->setCellValue('G' . $row, $dt['inisial']);
+            $sheet->setCellValue('H' . $row, $dt['style']);
+            $sheet->setCellValue('I' . $row, $dt['warna']);
+            $sheet->setCellValue('J' . $row, $dt['delivery']);
+            $sheet->setCellValue('K' . $row, $dt['qty_po_inisial']);
+            $sheet->setCellValue('L' . $row, $dt['admin']);
 
             // Align center untuk semua data
-            foreach (range('A', 'J') as $col) {
+            foreach (range('A', 'L') as $col) {
                 $sheet->getStyle($col . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
             }
 
@@ -275,10 +279,10 @@ class ExcelController extends BaseController
                 ],
             ],
         ];
-        $sheet->getStyle('A3:J' . ($row - 1))->applyFromArray($styleArray);
+        $sheet->getStyle('A3:L' . ($row - 1))->applyFromArray($styleArray);
 
         // Nama file
-        $fileName = 'Report_Pemasukan.xlsx';
+        $fileName = 'Report_Data_Order.xlsx';
 
         // Set header untuk download file
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

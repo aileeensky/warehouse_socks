@@ -206,13 +206,17 @@ class PackingController extends BaseController
 
     public function schedulePacking()
     {
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_jalan = $this->request->getPost('cari2');
+
         $admin = session()->get('username');
         $role = session()->get('role');
-        $dataPermintaan = $this->permintaanModel->getData($admin);
+        $dataPermintaan = $this->permintaanModel->getData($admin, $nomodel, $tgl_jalan);
 
         $data = [
             'role' => $role,
             'admin' => $admin,
+            'title' => 'Schedule Packing',
             'permintaan' => $dataPermintaan,
         ];
         return view($role . '/schedule', $data);
@@ -242,6 +246,16 @@ class PackingController extends BaseController
                 ->withInput()
                 ->with('error', 'Gagal Kirim Schedule Packing');
         }
+    }
+
+    public function hapusPermintaan()
+    {
+        $id = $this->request->getPost('id_minta');
+        dd($id);
+        if ($id) {
+            $this->permintaanModel->delete($id);
+        }
+        return redirect()->to(base_url(session()->get('role') . '/schedule'))->with('success', 'Data berhasil dihapus.');
     }
 
     public function statusPermintaan()

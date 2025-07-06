@@ -1,5 +1,6 @@
 <?php $this->extend($role . '/layout'); ?>
 <?php $this->section('content'); ?>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <section class="section">
     <div class="row">
         <?php if (session()->getFlashdata('success')) : ?>
@@ -29,13 +30,24 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Schedule Packing</h5>
+                    <h5 class="card-title"><?= $title ?></h5>
+                    <form action="<?= base_url($role . '/schedule') ?>" method="post">
+                        <div class="row mb-2">
+                            <label for="cari" class="col-sm-2 col-form-label">No Model</label>
+                            <div class="col-sm-2">
+                                <input class="form-control" type="text" name="cari1">
+                            </div>
+                            <label for="cari2" class="col-sm-2 col-form-label">Tgl Jalan</label>
+                            <div class="col-sm-2">
+                                <input class="form-control" type="date" name="cari2">
+                            </div>
+                            <div class="col-sm-2">
+                                <button class="btn btn-info">Search</button>
+                            </div>
+                        </div>
+                    </form>
                     <div style="display: flex; align-items: center;">
                         <div class="col-md-2">
-                            <!-- Icon Excel -->
-                            <a class="nav-link collapsed" href="">
-                                <i class="ri-file-excel-line" style="font-size: 30px;"></i>
-                            </a>
                         </div>
                     </div>
                     <p></p>
@@ -61,6 +73,7 @@
                                 <th scope="col">Ket Packing</th>
                                 <th scope="col">Gd Setting</th>
                                 <th scope="col">Kirim</th>
+                                <th scope="col">Hapus</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -94,6 +107,14 @@
                                             </a>
                                         </form>
                                     </td>
+                                    <td>
+                                        <form id="hapusForm<?= $data['id_minta'] ?>" action="<?= base_url('/' . $role . '/hapuspermintaan') ?>" method="post" onsubmit="return confirm('Yakin mau hapus?');">
+                                            <input type="hidden" name="id_minta" value="<?= $data['id_minta'] ?>">
+                                            <button type="submit" style="border: none; background: none; color: red;" title="Hapus">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             <?php
                                 $no++;
@@ -102,6 +123,7 @@
                     </table>
                     <!-- End Table with stripped rows -->
                     <button type="button" class="btn btn-outline-primary">Kirim</button>
+                    <button type="button" class="btn btn-outline-danger">Hapus</button>
                 </div>
             </div>
 
