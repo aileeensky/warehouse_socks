@@ -20,10 +20,15 @@
                             <div class="col-sm-2">
                                 <button class="btn btn-info">Search</button>
                             </div>
+
+                            <!-- Icon Excel -->
+                            <div class="col-sm-2">
+                                <button class="btn btn-success" type="submit" style="display: flex; align-items: center;" formaction="<?= base_url($role . '/excelreportpemasukan') ?>">
+                                    <i class="ri-file-excel-line" style="font-size: 20px;"></i>
+                                    Export Excel
+                                </button>
+                            </div>
                         </div>
-                        <button class="nav-link collapsed" type="submit" formaction="<?= base_url($role . '/excelreportpemasukan') ?>">
-                            <i class="ri-file-excel-line" style="font-size: 30px;"></i>
-                        </button>
                     </form>
                     <p></p>
                     <!-- Table with stripped rows -->

@@ -69,6 +69,7 @@ class PackingController extends BaseController
         $totalPermintaan = $this->permintaanModel
             ->selectSum('qty_minta')
             ->where('DATE(created_at)', $today)
+            ->where('status <>', '')
             ->get()
             ->getRow()
             ->qty_minta;
@@ -144,14 +145,18 @@ class PackingController extends BaseController
 
     public function stock()
     {
+        $nomodel = $this->request->getPost('cari1');
+
         $admin = session()->get('username');
         $role = session()->get('role');
-        $dataStock = $this->stockModel->getAllStock();
+
+        $dataStock = $this->stockModel->getAllStock($nomodel);
         $dataNomodel = $this->indukModel->selectNomodel();
 
         $data = [
             'role' => $role,
             'admin' => $admin,
+            'title' => 'Stock Gudang',
             'stock' => $dataStock,
             'pdk' => $dataNomodel,
         ];
@@ -206,13 +211,17 @@ class PackingController extends BaseController
 
     public function schedulePacking()
     {
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_jalan = $this->request->getPost('cari2');
+
         $admin = session()->get('username');
         $role = session()->get('role');
-        $dataPermintaan = $this->permintaanModel->getData($admin);
+        $dataPermintaan = $this->permintaanModel->getData($admin, $nomodel, $tgl_jalan);
 
         $data = [
             'role' => $role,
             'admin' => $admin,
+            'title' => 'Schedule Packing',
             'permintaan' => $dataPermintaan,
         ];
         return view($role . '/schedule', $data);
@@ -279,15 +288,29 @@ class PackingController extends BaseController
     //         ->with('error', 'Tidak ada data yang dipilih untuk dikirim.');
     // }
 
+    public function hapusPermintaan()
+    {
+        $id = $this->request->getPost('id_minta');
+        dd($id);
+        if ($id) {
+            $this->permintaanModel->delete($id);
+        }
+        return redirect()->to(base_url(session()->get('role') . '/schedule'))->with('success', 'Data berhasil dihapus.');
+    }
+
     public function statusPermintaan()
     {
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_jalan = $this->request->getPost('cari2');
+
         $admin = session()->get('username');
         $role = session()->get('role');
-        $dataPermintaan = $this->permintaanModel->getDataPermintaan($admin);
+        $dataPermintaan = $this->permintaanModel->getDataPermintaan($admin, $nomodel, $tgl_jalan);
 
         $data = [
             'role' => $role,
             'admin' => $admin,
+            'title' => 'Status Permintaan Packing',
             'permintaan' => $dataPermintaan,
         ];
         return view($role . '/statuspermintaan', $data);

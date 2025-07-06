@@ -46,7 +46,7 @@ class TabelAnakModel extends Model
 
     public function getSelect()
     {
-        return $this->select('tabel_induk.no_order, tabel_anak.waktu_input, tabel_anak.area, tabel_induk.no_model, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, tabel_induk.delivery, tabel_anak.qty_po_inisial')
+        return $this->select('tabel_induk.no_order, tabel_induk.kode_buyer, tabel_anak.waktu_input, tabel_anak.area, tabel_induk.no_model, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna, tabel_induk.delivery, tabel_anak.qty_po_inisial, tabel_anak.admin')
             ->join('tabel_induk', 'tabel_anak.id_induk = tabel_induk.id_induk', 'left')
             ->where('tabel_induk.no_model IS NOT NULL')
             ->orderBy('tabel_anak.waktu_input', 'DESC')

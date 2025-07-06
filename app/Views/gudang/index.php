@@ -32,8 +32,8 @@
                                     <i class="ri-stock-line"></i>
                                 </div>
                                 <div class="ps-3">
-                                    <h6><?= $stock ?: 0; ?></h6>
-                                    <span class="text-success small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">increase</span>
+                                    <h6><?= number_format($stock, 2) ?: 0; ?></h6>
+                                    <!-- <span class="text-success small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">increase</span> -->
 
                                 </div>
                             </div>
@@ -67,8 +67,8 @@
                                     <i class="bi bi-box-arrow-in-down-right"></i>
                                 </div>
                                 <div class="ps-3">
-                                    <h6><?= $pemasukan ?: 0; ?></h6>
-                                    <span class="text-success small pt-1 fw-bold">8%</span> <span class="text-muted small pt-2 ps-1">increase</span>
+                                    <h6><?= number_format($pemasukan, 2) ?: 0; ?></h6>
+                                    <!-- <span class="text-success small pt-1 fw-bold">8%</span> <span class="text-muted small pt-2 ps-1">increase</span> -->
 
                                 </div>
                             </div>
@@ -103,8 +103,8 @@
                                     <i class="bi bi-cart"></i>
                                 </div>
                                 <div class="ps-3">
-                                    <h6><?= $permintaan ?: 0; ?></h6>
-                                    <span class="text-danger small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease</span>
+                                    <h6><?= number_format($permintaan, 2) ?: 0; ?></h6>
+                                    <!-- <span class="text-danger small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease</span> -->
 
                                 </div>
                             </div>
@@ -140,8 +140,8 @@
                                     <i class="bi bi-box-arrow-in-up-right"></i>
                                 </div>
                                 <div class="ps-3">
-                                    <h6><?= $pengeluaran ?: 0; ?></h6>
-                                    <span class="text-danger small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease</span>
+                                    <h6><?= number_format($pengeluaran, 2) ?: 0; ?></h6>
+                                    <!-- <span class="text-danger small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease</span> -->
 
                                 </div>
                             </div>

@@ -34,8 +34,8 @@ $routes->group('/monitoring', ['filter' => 'monitoring'], function ($routes) {
 //gudang
 $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->get('', 'GudangController::index');
-    $routes->get('inputdatabase', 'GudangController::inputNoModel');
-    $routes->post('importdatabase', 'GudangController::importDatabase');
+    $routes->get('dataorder', 'GudangController::dataOrder');
+    $routes->post('importdataorder', 'GudangController::importDataOrder');
     $routes->get('stock', 'GudangController::stock');
     $routes->post('importstock', 'GudangController::importStock');
 
@@ -63,10 +63,18 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
 $routes->group('/packing', ['filter' => 'packing'], function ($routes) {
     $routes->get('', 'PackingController::index');
     $routes->get('stock', 'PackingController::stock');
+    $routes->post('stock', 'PackingController::stock');
     $routes->post('inputpermintaan', 'PackingController::inputPermintaan');
     $routes->get('schedule', 'PackingController::schedulePacking');
+    $routes->post('schedule', 'PackingController::schedulePacking');
     $routes->post('kirimpermintaan', 'PackingController::kirimSchedule');
+    $routes->post('hapuspermintaan', 'PackingController::hapusPermintaan');
     $routes->get('statuspermintaan', 'PackingController::statusPermintaan');
+    $routes->post('statuspermintaan', 'PackingController::statusPermintaan');
+
+    //report
+    $routes->post('excelreportstock', 'ExcelController::excelReportStock');
+    $routes->post('excel-status-permintaan', 'ExcelController::excelSatusPermintaan');
 });
 
 

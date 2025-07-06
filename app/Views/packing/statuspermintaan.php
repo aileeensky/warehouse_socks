@@ -29,16 +29,29 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Schedule Packing</h5>
-                    <div style="display: flex; align-items: center;">
-                        <div class="col-md-2">
+                    <h5 class="card-title"><?= $title ?></h5>
+                    <form action="<?= base_url($role . '/statuspermintaan') ?>" method="post">
+                        <div class="row mb-2">
+                            <label for="cari" class="col-sm-1 col-form-label">No Model</label>
+                            <div class="col-sm-2">
+                                <input class="form-control" type="text" name="cari1">
+                            </div>
+                            <label for="cari" class="col-sm-1 col-form-label">Tanggal Jalan</label>
+                            <div class="col-sm-2">
+                                <input class="form-control" type="date" name="cari2">
+                            </div>
+                            <div class="col-sm-2">
+                                <button class="btn btn-info">Search</button>
+                            </div>
                             <!-- Icon Excel -->
-                            <a class="nav-link collapsed" href="">
-                                <i class="ri-file-excel-line" style="font-size: 30px;"></i>
-                            </a>
+                            <div class="col-sm-2">
+                                <button class="btn btn-success" type="submit" style="display: flex; align-items: center;" formaction="<?= base_url($role . '/excel-status-permintaan') ?>">
+                                    <i class="ri-file-excel-line" style="font-size: 20px;"></i>
+                                    Export Excel
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <p></p>
+                    </form>
                     <!-- Table with stripped rows -->
                     <table class="table datatable">
                         <thead>

@@ -172,7 +172,7 @@
             </li><!-- End Dashboard Nav -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/inputdatabase') ?>">
+                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/dataorder') ?>">
                     <i class="ri-database-2-line"></i><span>Data Order</span></i>
                 </a>
             </li><!-- End Components Nav -->

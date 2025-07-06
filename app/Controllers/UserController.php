@@ -69,6 +69,7 @@ class UserController extends BaseController
         $totalPermintaan = $this->permintaanModel
             ->selectSum('qty_minta')
             ->where('DATE(created_at)', $today)
+            ->where('status <>', '')
             ->get()
             ->getRow()
             ->qty_minta;
