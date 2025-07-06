@@ -267,10 +267,13 @@ class MonitoringController extends BaseController
         $role = session()->get('role');
         $dataMasuk = $this->pemasukanModel->getData($nomodel, $tgl_masuk);
 
+        $pdkList   = $this->indukModel->select('id_induk, no_model')->findAll();
+
         $data = [
             'role' => $role,
             'admin' => $admin,
             'dataMasuk' => $dataMasuk,
+            'pdk'       => $pdkList,
             'title' => 'Report Pemasukan',
         ];
         return view($role . '/editpemasukan', $data);

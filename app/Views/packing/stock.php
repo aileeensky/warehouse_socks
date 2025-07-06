@@ -137,23 +137,23 @@
                                         </div>
                                         <div class="col-12">
                                             <label for="wh" class="form-label">Working Hours</label>
-                                            <input type="text" class="form-control" name="wh" id="wh" onkeyup="sum()">
+                                            <input type="number" class="form-control" name="wh" id="wh" onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="eff" class="form-label">Effisiency(%)</label>
-                                            <input type="text" class="form-control" name="eff" id="eff" onkeyup="sum()">
+                                            <input type="number" class="form-control" name="eff" id="eff" onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="direct" class="form-label">Direct</label>
-                                            <input type="text" class="form-control" name="direct" id="direct" onkeyup="sum()">
+                                            <input type="number" class="form-control" name="direct" id="direct" onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="kapasitas" class="form-label">Kapasitas</label>
-                                            <input type="text" class="form-control" name="kapasitas" id="kapasitas" readonly onkeyup="sum()">
+                                            <input type="number" class="form-control" name="kapasitas" id="kapasitas" readonly onkeyup="sum()">
                                         </div>
                                         <div class="col-12">
                                             <label for="qty_minta" class="form-label">Qty Minta(dz)</label>
-                                            <input type="text" class="form-control" name="qty_minta" id="qty_minta" onkeyup="hitung()">
+                                            <input type="number" class="form-control" name="qty_minta" id="qty_minta" onkeyup="hitung()">
                                         </div>
                                         <div class="col-12">
                                             <label for="ket_pck" class="form-label">Keterangan Packing</label>

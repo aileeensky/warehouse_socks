@@ -68,3 +68,15 @@ $routes->group('/packing', ['filter' => 'packing'], function ($routes) {
     $routes->post('kirimpermintaan', 'PackingController::kirimSchedule');
     $routes->get('statuspermintaan', 'PackingController::statusPermintaan');
 });
+
+
+// user
+$routes->group('/user', ['filter' => 'user'], function ($routes) {
+    $routes->get('', 'UserController::index');
+    $routes->get('stock', 'UserController::stock');
+    $routes->get('reportpemasukan', 'UserController::reportPemasukan');
+    $routes->post('reportpemasukan', 'UserController::reportPemasukan');
+    $routes->get('reportpermintaan', 'UserController::reportPermintaan');
+    $routes->post('reportpermintaan', 'UserController::reportPermintaan');
+    $routes->get('reportpengeluaran', 'UserController::reportPengeluaran');
+});

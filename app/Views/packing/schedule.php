@@ -33,9 +33,9 @@
                     <div style="display: flex; align-items: center;">
                         <div class="col-md-2">
                             <!-- Icon Excel -->
-                            <a class="nav-link collapsed" href="">
+                            <!-- <a class="nav-link collapsed" href="">
                                 <i class="ri-file-excel-line" style="font-size: 30px;"></i>
-                            </a>
+                            </a> -->
                         </div>
                     </div>
                     <p></p>
@@ -43,7 +43,7 @@
                     <table class="table datatable">
                         <thead>
                             <tr>
-                                <th></th>
+                                <th><input class="form-check-input" type="checkbox" id="selectAll"></th>
                                 <th scope="col">No</th>
                                 <th scope="col">Tgl Minta</th>
                                 <th scope="col">Tgl Jalan</th>
@@ -68,7 +68,7 @@
                             $no = 1;
                             foreach ($permintaan as $data) : ?>
                                 <tr>
-                                    <th><input class="form-check-input" type="checkbox" id="gridCheck1"></th>
+                                    <th><input class="form-check-input row-checkbox" type="checkbox" name="selected[]" value="<?= $data['id_minta'] ?>"></th>
                                     <th scope="row"><?= $no ?></th>
                                     <td><?= $data['tgl_minta'] ?></td>
                                     <td><?= $data['tgl_jalan'] ?></td>
@@ -108,7 +108,24 @@
         </div>
     </div>
 </section>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    $(document).ready(function() {
+        // Event delegation untuk select all
+        $(document).on('change', '#selectAll', function() {
+            $('.row-checkbox').prop('checked', this.checked);
+        });
+
+        // Event delegation untuk checkbox per baris
+        $(document).on('change', '.row-checkbox', function() {
+            if ($('.row-checkbox:checked').length !== $('.row-checkbox').length) {
+                $('#selectAll').prop('checked', false);
+            } else {
+                $('#selectAll').prop('checked', true);
+            }
+        });
+    });
 </script>
+
 
 <?php $this->endSection(); ?>

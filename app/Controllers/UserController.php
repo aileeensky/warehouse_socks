@@ -19,7 +19,7 @@ use DateTime;
 use DatePeriod;
 use DateInterval;
 
-class PackingController extends BaseController
+class UserController extends BaseController
 {
     protected $filters;
     protected $layoutModel;
@@ -158,138 +158,50 @@ class PackingController extends BaseController
         return view($role . '/stock', $data);
     }
 
-    public function inputPermintaan()
+    public function reportPemasukan()
     {
-        $now = date('Y-m-d H:i:s');
-        $permintaan = $this->permintaanModel;
-        $idAnak = $this->request->getPost('id_anak');
-        $areaPck = $this->request->getPost('admin');
-        $gdSetting = $this->request->getPost('gd_setting');
-        $tglJalan = $this->request->getPost('tgl_jalan');
-        $wh = $this->request->getPost('wh');
-        $eff = $this->request->getPost('eff');
-        $direct = $this->request->getPost('direct');
-        $kapasitas = $this->request->getPost('kapasitas');
-        $qtyMinta = $this->request->getPost('qty_minta');
-        $ketPck = $this->request->getPost('ket_pck');
-        $admin = $this->request->getPost('admin');
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_masuk = $this->request->getPost('cari2');
 
-        $data = [
-            'created_at' => $now,
-            'id_anak' => $idAnak,
-            'area_packing' => $areaPck,
-            'gd_setting' => $gdSetting,
-            'tgl_jalan' => $tglJalan,
-            'wh' => $wh,
-            'eff' => $eff,
-            'direct' => $direct,
-            'kapasitas' => $kapasitas,
-            'qty_minta' => $qtyMinta,
-            'ket_packing' => $ketPck,
-            'admin' => $admin,
-        ];
-
-        // Jika jalur belum ada, lanjutkan insert data
-        $insertPermintaan = $permintaan->insert($data);
-
-        // Pastikan pengecekan insert menggunakan perbandingan dengan false
-        if ($insertPermintaan !== false) {
-            return redirect()->to(base_url(session()->get('role') . '/stock/'))
-                ->withInput()
-                ->with('success', 'Berhasil Membuat Schedule Packing');
-        } else {
-            return redirect()->to(base_url(session()->get('role') . '/stock/'))
-                ->withInput()
-                ->with('error', 'Gagal Membuat Schedule Packing');
-        }
-    }
-
-    public function schedulePacking()
-    {
-        $admin = session()->get('username');
         $role = session()->get('role');
-        $dataPermintaan = $this->permintaanModel->getData($admin);
+        $dataMasuk = $this->pemasukanModel->getData($nomodel, $tgl_masuk);
 
         $data = [
             'role' => $role,
-            'admin' => $admin,
-            'permintaan' => $dataPermintaan,
+            'dataMasuk' => $dataMasuk,
+            'title' => 'Report Pemasukan',
         ];
-        return view($role . '/schedule', $data);
+        return view($role . '/reportpemasukan', $data);
     }
 
-    public function kirimSchedule()
+    public function reportPermintaan()
     {
-        $role = session()->get('role');
-        $permintaan = $this->permintaanModel;
-        $idMinta = $this->request->getPost('id_minta');
-        $status = $this->request->getPost('status');
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_jalan = $this->request->getPost('cari2');
 
-        $data = [
-            'status' => $status,
-        ];
-
-        // Update data permintaan berdasarkan id_minta
-        $permintaan->where('id_minta', $idMinta)->update($idMinta, $data);
-
-        // Pastikan pengecekan insert menggunakan perbandingan dengan false
-        if ($permintaan !== false) {
-            return redirect()->to(base_url(session()->get('role') . '/schedule/'))
-                ->withInput()
-                ->with('success', 'Berhasil Kirim Schedule Packing');
-        } else {
-            return redirect()->to(base_url(session()->get('role') . '/schedule/'))
-                ->withInput()
-                ->with('error', 'Gagal Kirim Schedule Packing');
-        }
-    }
-
-    // public function kirimSchedule()
-    // {
-    //     $role = session()->get('role');
-    //     $permintaan = $this->permintaanModel;
-
-    //     // Ambil data dari POST
-    //     $idMintaSingle = $this->request->getPost('id_minta'); // untuk kirim satuan
-    //     $idMintaArray = $this->request->getPost('selected'); // untuk kirim banyak (checkbox)
-    //     $status = $this->request->getPost('status');
-
-    //     // Kirim satuan
-    //     if (!empty($idMintaSingle)) {
-    //         $data = ['status' => $status];
-    //         $permintaan->where('id_minta', $idMintaSingle)->update($idMintaSingle, $data);
-
-    //         return redirect()->to(base_url($role . '/schedule'))
-    //             ->with('success', 'Berhasil Kirim Schedule Packing (satu)');
-    //     }
-
-    //     // Kirim banyak (dari checkbox)
-    //     if (!empty($idMintaArray) && is_array($idMintaArray)) {
-    //         foreach ($idMintaArray as $idMinta) {
-    //             $data = ['status' => $status];
-    //             $permintaan->where('id_minta', $idMinta)->update($idMinta, $data);
-    //         }
-
-    //         return redirect()->to(base_url($role . '/schedule'))
-    //             ->with('success', 'Berhasil Kirim Beberapa Schedule Packing');
-    //     }
-
-    //     // Gagal jika tidak ada input
-    //     return redirect()->to(base_url($role . '/schedule'))
-    //         ->with('error', 'Tidak ada data yang dipilih untuk dikirim.');
-    // }
-
-    public function statusPermintaan()
-    {
         $admin = session()->get('username');
         $role = session()->get('role');
-        $dataPermintaan = $this->permintaanModel->getDataPermintaan($admin);
+
+        $dataPermintaan = $this->permintaanModel->getDataMinta($nomodel, $tgl_jalan);
 
         $data = [
-            'role' => $role,
             'admin' => $admin,
+            'role' => $role,
             'permintaan' => $dataPermintaan,
         ];
-        return view($role . '/statuspermintaan', $data);
+        return view($role . '/reportpermintaan', $data);
+    }
+
+    public function reportPengeluaran()
+    {
+        $role = session()->get('role');
+        $dataKeluar = $this->pengeluaranModel->getData();
+        dd($dataKeluar);
+        $data = [
+            'role' => $role,
+            'dataKeluar' => $dataKeluar,
+        ];
+
+        return view($role . '/reportpengeluaran', $data);
     }
 }
