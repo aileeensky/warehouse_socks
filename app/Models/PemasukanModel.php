@@ -54,8 +54,8 @@ class PemasukanModel extends Model
             $builder->where('tabel_induk.no_model', $nomodel);
         }
 
-        if (!empty($tgl_jalan)) {
-            $builder->where('pemasukan.tgl_masuk', $tgl_masuk);
+        if (!empty($tgl_masuk)) {
+            $builder->where('DATE(pemasukan.created_at)', $tgl_masuk);
         }
 
         return $builder->groupBy('pemasukan.id_masuk')

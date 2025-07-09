@@ -51,12 +51,14 @@ $routes->group('/gudang', ['filter' => 'gudang'], function ($routes) {
     $routes->get('reportpemasukan', 'GudangController::reportPemasukan');
     $routes->post('reportpemasukan', 'GudangController::reportPemasukan');
     $routes->get('reportpengeluaran', 'GudangController::reportPengeluaran');
+    $routes->post('reportpengeluaran', 'GudangController::reportPengeluaran');
     $routes->post('getStockByIdAnak', 'GudangController::getStockByIdAnak');
 
     //report
     $routes->get('exceldataorder', 'ExcelController::excelDataOrder');
     $routes->get('excelstockgudang', 'ExcelController::excelStockGudang');
     $routes->post('excelreportpemasukan', 'ExcelController::excelReportPemasukan');
+    $routes->post('excelreportpengeluaran', 'ExcelController::excelReportPengeluaran');
 });
 
 //packing
@@ -87,4 +89,12 @@ $routes->group('/user', ['filter' => 'user'], function ($routes) {
     $routes->get('reportpermintaan', 'UserController::reportPermintaan');
     $routes->post('reportpermintaan', 'UserController::reportPermintaan');
     $routes->get('reportpengeluaran', 'UserController::reportPengeluaran');
+    $routes->post('reportpengeluaran', 'UserController::reportPengeluaran');
+
+    //report
+    $routes->get('exceldataorder', 'ExcelController::excelDataOrder');
+    $routes->get('excelstockgudang', 'ExcelController::excelStockGudang');
+    $routes->post('excelreportpemasukan', 'ExcelController::excelReportPemasukan');
+    $routes->post('excelreportpermintaan', 'ExcelController::excelSatusPermintaan');
+    $routes->post('excelreportpengeluaran', 'ExcelController::excelReportPengeluaran');
 });

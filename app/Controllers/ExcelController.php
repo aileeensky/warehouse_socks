@@ -173,6 +173,8 @@ class ExcelController extends BaseController
         // Isi data dari database dimulai dari baris ke-4
         $row = 4;
         $no = 1;
+        $totalQtyMasuk = 0;
+        $totalBoxMasuk = 0;
         foreach ($dataMasuk as $dt) {
             $sheet->setCellValue('A' . $row, $no);
             $sheet->setCellValue('B' . $row, $dt['created_at']);
@@ -192,6 +194,8 @@ class ExcelController extends BaseController
 
             $row++;
             $no++;
+            $totalQtyMasuk += $dt['qty_masuk'];;
+            $totalBoxMasuk += $dt['qty_masuk'];;
         }
 
         // Styling tabel (border)
@@ -205,8 +209,148 @@ class ExcelController extends BaseController
         ];
         $sheet->getStyle('A3:J' . ($row - 1))->applyFromArray($styleArray);
 
+        //TOTAL
+        $sheet->setCellValue('A' . $row, 'TOTAL');
+        $sheet->mergeCells('A' . $row . ':G' . $row);
+        $sheet->setCellValue('H' . $row, $totalQtyMasuk);
+        $sheet->setCellValue('I' . $row, $totalBoxMasuk);
+
+        // Styling total row
+        $sheet->getStyle("A$row:J$row")->getFont()->setBold(true);
+        $sheet->getStyle("A$row:J$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A$row:J$row")->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ]);
+
+
         // Nama file
         $fileName = 'Report_Pemasukan.xlsx';
+
+        // Set header untuk download file
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+
+    public function excelReportPengeluaran()
+    {
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_keluar = $this->request->getPost('cari2');
+
+        $role = session()->get('role');
+        $dataKeluar = $this->pengeluaranModel->getData($nomodel, $tgl_keluar);
+
+        // Load PhpSpreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set judul laporan
+        $sheet->setCellValue('A1', 'Report Pengeluaran');
+        $sheet->mergeCells('A1:J1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Header tabel
+        $columns = [
+            'A' => 'No',
+            'B' => 'Tgl Keluar',
+            'C' => 'Area',
+            'D' => 'Buyer',
+            'E' => 'No Model',
+            'F' => 'In',
+            'G' => 'Style',
+            'H' => 'Qty Keluar',
+            'I' => 'Box Keluar',
+            'J' => 'Keterangan'
+        ];
+
+        foreach ($columns as $col => $value) {
+            $sheet->setCellValue($col . '3', $value);
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+            $sheet->getStyle($col . '3')->getFont()->setBold(true);
+            $sheet->getStyle($col . '3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        }
+
+        // Isi data dari database dimulai dari baris ke-4
+        $row = 4;
+        $no = 1;
+        $totalQtyKeluar = 0;
+        $totalBoxKeluar = 0;
+
+        foreach ($dataKeluar as $dt) {
+            $sheet->setCellValue('A' . $row, $no);
+            $sheet->setCellValue('B' . $row, $dt['tgl_keluar']);
+            $sheet->setCellValue('C' . $row, $dt['area']);
+            $sheet->setCellValue('D' . $row, $dt['kode_buyer']);
+            $sheet->setCellValue('E' . $row, $dt['no_model']);
+            $sheet->setCellValue('F' . $row, $dt['inisial']);
+            $sheet->setCellValue('G' . $row, $dt['style']);
+            $sheet->setCellValue('H' . $row, $dt['qty_keluar']);
+            $sheet->setCellValue('I' . $row, $dt['box_keluar']);
+            $sheet->setCellValue('J' . $row, $dt['ket_keluar']);
+
+            // Align center untuk semua data
+            foreach (range('A', 'J') as $col) {
+                $sheet->getStyle($col . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            }
+
+            $row++;
+            $no++;
+            $totalQtyKeluar += $dt['qty_keluar'];
+            $totalBoxKeluar += $dt['box_keluar'];
+        }
+
+        // Styling tabel (border)
+        $styleArray = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ];
+        $sheet->getStyle('A3:J' . ($row - 1))->applyFromArray($styleArray);
+
+        $sheet->setCellValue('A' . $row, 'TOTAL');
+        $sheet->mergeCells('A' . $row . ':G' . $row);
+        $sheet->setCellValue('H' . $row, $totalQtyKeluar);
+        $sheet->setCellValue('I' . $row, $totalBoxKeluar);
+
+        // Styling total row
+        $sheet->getStyle("A$row:J$row")->getFont()->setBold(true);
+        $sheet->getStyle("A$row:J$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A$row:J$row")->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ]);
+
+
+        // Tambahkan border untuk total
+        $sheet->getStyle("G$row:I$row")->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ]);
+
+
+        // Nama file
+        $fileName = 'Report_Pengeluaran.xlsx';
 
         // Set header untuk download file
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

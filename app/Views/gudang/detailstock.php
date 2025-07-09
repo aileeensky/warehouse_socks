@@ -29,7 +29,10 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><?= $jalur ?></h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0"><?= $jalur ?></h5>
+                        <a href="<?= base_url($role . '/stock') ?>" class="btn btn-secondary" type="button">Back</a>
+                    </div>
                     <!-- Table with stripped rows -->
                     <table class="table datatable">
                         <thead>

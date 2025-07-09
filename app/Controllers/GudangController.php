@@ -22,6 +22,8 @@ use Phpml\Clustering\KMeans;
 
 class GudangController extends BaseController
 {
+    protected $role;
+    protected $active;
     protected $filters;
     protected $layoutModel;
     protected $pemasukanModel;
@@ -47,7 +49,8 @@ class GudangController extends BaseController
         $this->indukModel = new TabelIndukModel();
         $this->userModel = new UserModel();
 
-
+        $this->role = session()->get('role');
+        $this->active = '/index.php/' . session()->get('role');
         if ($this->filters = ['role' => ['gudang', session()->get('role')]] !== session()->get('role')) {
             return redirect()->to(base_url('/'));
         }
@@ -134,6 +137,8 @@ class GudangController extends BaseController
         ]);
 
         $data = [
+            'active' =>  $this->active,
+            'title' => 'Dashboard',
             'role' => $role,
             'stock' => $totalStock,
             'pemasukan' => $totalPemasukan,
@@ -149,6 +154,7 @@ class GudangController extends BaseController
         $role = session()->get('role');
 
         $data = [
+            'active' =>  $this->active,
             'role' => $role,
         ];
         return view($role . '/index', $data);
@@ -159,7 +165,9 @@ class GudangController extends BaseController
         $role = session()->get('role');
         $dataAnak = $this->anakModel->getSelect();
         $data = [
+            'active' =>  $this->active,
             'role' => $role,
+            'title' => 'Data Order',
             'db' => $dataAnak,
         ];
         return view($role . '/dataorder', $data);
@@ -295,6 +303,8 @@ class GudangController extends BaseController
         $dataNomodel = $this->indukModel->selectNomodel();
 
         $data = [
+            'active' =>  $this->active,
+            'title' => 'Stock Gudang',
             'role' => $role,
             'jalur' => $dataJalur,
             'pdk' => $dataNomodel,
@@ -311,6 +321,7 @@ class GudangController extends BaseController
         $dataNomodel = $this->indukModel->selectNomodel();
 
         $data = [
+            'title' => 'Stock Gudang',
             'role' => $role,
             'jalur' => $dataJalur,
             'pdk' => $dataNomodel,
@@ -416,6 +427,7 @@ class GudangController extends BaseController
         $dataStock = $this->stockModel->getDataStock($jalur);
 
         $data = [
+            'title' => 'Stock Gudang',
             'role' => $role,
             'stock' => $dataStock,
             'jalur' => $jalur,
@@ -434,6 +446,7 @@ class GudangController extends BaseController
         $dataPermintaan = $this->permintaanModel->getDataMinta($nomodel, $tgl_jalan);
 
         $data = [
+            'title' => 'Data Permintaan',
             'admin' => $admin,
             'role' => $role,
             'permintaan' => $dataPermintaan,
@@ -498,11 +511,16 @@ class GudangController extends BaseController
             // Jika sisa sudah nol atau kurang, update status permintaan ke DONE
             if ($sisa <= 0) {
                 $permintaan->update($idMinta, ['status' => 'DONE']);
+                return redirect()->to(base_url(session()->get('role') . '/dataterkirim/'))
+                    ->withInput()
+                    ->with('success', 'Berhasil Input Pengeluaran');
+            } elseif ($sisa > 0) {
+                // Jika masih ada sisa, update status permintaan ke ON PROCESS
+                $permintaan->update($idMinta, ['status' => 'ON PROCESS']);
+                return redirect()->to(base_url(session()->get('role') . '/datapermintaan/'))
+                    ->withInput()
+                    ->with('success', 'Berhasil Input Pengeluaran');
             }
-
-            return redirect()->to(base_url(session()->get('role') . '/dataterkirim/'))
-                ->withInput()
-                ->with('success', 'Berhasil Input Pengeluaran');
         } else {
             return redirect()->to(base_url(session()->get('role') . '/datapermintaan/'))
                 ->withInput()
@@ -520,6 +538,9 @@ class GudangController extends BaseController
         $terkirim = $this->permintaanModel->getDataTerkirim($nomodel, $tgl_jalan);
 
         $data = [
+            'title' => 'Data Terkirim',
+            'admin' => session()->get('username'),
+            'active' =>  $this->active,
             'role' => $role,
             'terkirim' => $terkirim,
         ];
@@ -535,6 +556,7 @@ class GudangController extends BaseController
         $dataMasuk = $this->pemasukanModel->getData($nomodel, $tgl_masuk);
 
         $data = [
+            'title' => 'Report Pemasukan',
             'role' => $role,
             'dataMasuk' => $dataMasuk,
             'title' => 'Report Pemasukan',
@@ -544,10 +566,16 @@ class GudangController extends BaseController
 
     public function reportPengeluaran()
     {
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_keluar = $this->request->getPost('cari2');
+
         $role = session()->get('role');
-        $dataKeluar = $this->pengeluaranModel->getData();
-        dd($dataKeluar);
+        $dataKeluar = $this->pengeluaranModel->getData($nomodel, $tgl_keluar);
+
         $data = [
+            'title' => 'Report Pengeluaran',
+            'active' =>  $this->active,
+            'admin' => session()->get('username'),
             'role' => $role,
             'dataKeluar' => $dataKeluar,
         ];

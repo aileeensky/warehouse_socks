@@ -2,11 +2,34 @@
 <?php $this->section('content'); ?>
 <section class="section">
     <div class="row">
+        <?php if (session()->getFlashdata('success')) : ?>
+            <script>
+                $(document).ready(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '<?= session()->getFlashdata('success') ?>',
+                    });
+                });
+            </script>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('error')) : ?>
+            <script>
+                $(document).ready(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: '<?= session()->getFlashdata('error') ?>',
+                    });
+                });
+            </script>
+        <?php endif; ?>
         <div class="col-lg-12">
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><?= $title ?></h5>
+                    <h5 class="card-title">Tabel <?= $title ?></h5>
                     <form action="<?= base_url($role . '/reportpemasukan') ?>" method="post">
                         <div class="row mb-2">
                             <label for="cari" class="col-sm-2 col-form-label">No Model</label>
@@ -73,4 +96,5 @@
         </div>
     </div>
 </section>
+
 <?php $this->endSection(); ?>

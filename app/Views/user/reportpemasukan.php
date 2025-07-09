@@ -2,11 +2,34 @@
 <?php $this->section('content'); ?>
 <section class="section">
     <div class="row">
+        <?php if (session()->getFlashdata('success')) : ?>
+            <script>
+                $(document).ready(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '<?= session()->getFlashdata('success') ?>',
+                    });
+                });
+            </script>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('error')) : ?>
+            <script>
+                $(document).ready(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: '<?= session()->getFlashdata('error') ?>',
+                    });
+                });
+            </script>
+        <?php endif; ?>
         <div class="col-lg-12">
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><?= $title ?></h5>
+                    <h5 class="card-title">Tabel <?= $title ?></h5>
                     <form action="<?= base_url($role . '/reportpemasukan') ?>" method="post">
                         <div class="row mb-2">
                             <label for="cari" class="col-sm-2 col-form-label">No Model</label>
@@ -20,10 +43,15 @@
                             <div class="col-sm-2">
                                 <button class="btn btn-info">Search</button>
                             </div>
+
+                            <!-- Icon Excel -->
+                            <div class="col-sm-2">
+                                <button class="btn btn-success" type="submit" style="display: flex; align-items: center;" formaction="<?= base_url($role . '/excelreportpemasukan') ?>">
+                                    <i class="ri-file-excel-line" style="font-size: 20px;"></i>
+                                    Export Excel
+                                </button>
+                            </div>
                         </div>
-                        <button class="nav-link collapsed" type="submit" formaction="<?= base_url($role . '/excelreportpemasukan') ?>">
-                            <i class="ri-file-excel-line" style="font-size: 30px;"></i>
-                        </button>
                     </form>
                     <p></p>
                     <!-- Table with stripped rows -->
@@ -68,4 +96,5 @@
         </div>
     </div>
 </section>
+
 <?php $this->endSection(); ?>

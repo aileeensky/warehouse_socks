@@ -2,6 +2,29 @@
 <?php $this->section('content'); ?>
 <section class="section">
     <div class="row">
+        <?php if (session()->getFlashdata('success')) : ?>
+            <script>
+                $(document).ready(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '<?= session()->getFlashdata('success') ?>',
+                    });
+                });
+            </script>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('error')) : ?>
+            <script>
+                $(document).ready(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: '<?= session()->getFlashdata('error') ?>',
+                    });
+                });
+            </script>
+        <?php endif; ?>
         <div class="col-lg-12">
 
             <div class="card">
@@ -82,35 +105,35 @@
                                         <div class="row">
                                             <div class="col-3">
                                                 <label for="packing" class="form-label">Area Packing</label>
-                                                <input type="text" class="form-control" name="packing" disabled>
+                                                <input type="text" class="form-control" name="packing" readonly>
                                             </div>
                                             <div class="col-3">
                                                 <label for="no_model" class="form-label">No Model</label>
-                                                <input type="text" class="form-control" name="no_model" disabled>
+                                                <input type="text" class="form-control" name="no_model" readonly>
                                             </div>
                                             <div class="col-3">
                                                 <label for="area" class="form-label">Area</label>
-                                                <input type="text" class="form-control" name="area" disabled>
+                                                <input type="text" class="form-control" name="area" readonly>
                                             </div>
                                             <div class="col-3">
                                                 <label for="inisial" class="form-label">Inisial</label>
                                                 <input type="hidden" class="form-control" name="id_anak" readonly>
-                                                <input type="text" class="form-control" name="inisial" disabled>
+                                                <input type="text" class="form-control" name="inisial" readonly>
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-3">
                                                 <label for="tgl_minta" class="form-label">Tgl Minta</label>
                                                 <input type="hidden" class="form-control" name="id_minta">
-                                                <input type="date" class="form-control" name="tgl_minta" disabled>
+                                                <input type="date" class="form-control" name="tgl_minta" readonly>
                                             </div>
                                             <div class="col-3">
                                                 <label for="tgl_jalan" class="form-label">Tgl Jalan</label>
-                                                <input type="date" class="form-control" name="tgl_jalan" disabled>
+                                                <input type="date" class="form-control" name="tgl_jalan" readonly>
                                             </div>
                                             <div class="col-3">
                                                 <label for="qty_minta" class="form-label">Qty Minta</label>
-                                                <input type="number" class="form-control" name="qty_minta" disabled>
+                                                <input type="number" class="form-control" name="qty_minta" readonly>
                                             </div>
                                             <div class="col-3">
                                                 <label for="tgl_kirim" class="form-label">Tgl Kirim</label>
@@ -120,7 +143,7 @@
                                         <div class="row">
                                             <div class="col-3">
                                                 <label for="tgl_kirim" class="form-label">Max Kirim</label>
-                                                <input type="number" class="form-control" name="max_kirim" id="max_kirim" disabled>
+                                                <input type="number" class="form-control" name="max_kirim" id="max_kirim" readonly>
                                             </div>
                                         </div>
                                         <table class="table datatable">

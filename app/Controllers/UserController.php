@@ -21,6 +21,8 @@ use DateInterval;
 
 class UserController extends BaseController
 {
+    protected $role;
+    protected $active;
     protected $filters;
     protected $layoutModel;
     protected $pemasukanModel;
@@ -46,7 +48,8 @@ class UserController extends BaseController
         $this->indukModel = new TabelIndukModel();
         $this->userModel = new UserModel();
 
-
+        $this->role = session()->get('role');
+        $this->active = '/index.php/' . session()->get('role');
         if ($this->filters = ['role' => ['packing', session()->get('role')]] !== session()->get('role')) {
             return redirect()->to(base_url('/'));
         }
@@ -133,6 +136,7 @@ class UserController extends BaseController
         ]);
 
         $data = [
+            'title' => 'Dashboard',
             'role' => $role,
             'stock' => $totalStock,
             'pemasukan' => $totalPemasukan,
@@ -151,6 +155,7 @@ class UserController extends BaseController
         $dataNomodel = $this->indukModel->selectNomodel();
 
         $data = [
+            'title' => 'Stock Gudang',
             'role' => $role,
             'admin' => $admin,
             'stock' => $dataStock,
@@ -168,6 +173,7 @@ class UserController extends BaseController
         $dataMasuk = $this->pemasukanModel->getData($nomodel, $tgl_masuk);
 
         $data = [
+            'title' => 'Report Pemasukan',
             'role' => $role,
             'dataMasuk' => $dataMasuk,
             'title' => 'Report Pemasukan',
@@ -179,15 +185,16 @@ class UserController extends BaseController
     {
         $nomodel = $this->request->getPost('cari1');
         $tgl_jalan = $this->request->getPost('cari2');
+        $packing = $this->request->getPost('cari2');
 
-        $admin = session()->get('username');
         $role = session()->get('role');
-
-        $dataPermintaan = $this->permintaanModel->getDataMinta($nomodel, $tgl_jalan);
+        $dataPermintaan = $this->permintaanModel->getDataPermintaan($packing, $nomodel, $tgl_jalan);
+        $area_packing = $this->permintaanModel->getAreaPacking();
 
         $data = [
-            'admin' => $admin,
             'role' => $role,
+            'area_packing' => $area_packing,
+            'title' => 'Report Pemesanan Packing',
             'permintaan' => $dataPermintaan,
         ];
         return view($role . '/reportpermintaan', $data);
@@ -195,10 +202,16 @@ class UserController extends BaseController
 
     public function reportPengeluaran()
     {
+        $nomodel = $this->request->getPost('cari1');
+        $tgl_keluar = $this->request->getPost('cari2');
+
         $role = session()->get('role');
-        $dataKeluar = $this->pengeluaranModel->getData();
-        dd($dataKeluar);
+        $dataKeluar = $this->pengeluaranModel->getData($nomodel, $tgl_keluar);
+
         $data = [
+            'title' => 'Report Pengeluaran',
+            'active' =>  $this->active,
+            'admin' => session()->get('username'),
             'role' => $role,
             'dataKeluar' => $dataKeluar,
         ];

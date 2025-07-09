@@ -105,7 +105,7 @@
                                     <td>
                                         <form id="kirimForm<?= $data['id_minta'] ?>" action="<?= base_url('/' . $role . '/kirimpermintaan') ?>" method="post">
                                             <input type="hidden" name="id_minta" value="<?= $data['id_minta'] ?>">
-                                            <input type="hidden" name="status" value="ON PROCCESS">
+                                            <input type="hidden" name="status" value="ON PROCESS">
                                             <a href="javascript:void(0);" onclick="document.getElementById('kirimForm<?= $data['id_minta'] ?>').submit();" style="cursor: pointer;">
                                                 <i class="ri-send-plane-2-line"></i>
                                             </a>

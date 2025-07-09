@@ -44,12 +44,20 @@ class PengeluaranModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    public function getData()
+    public function getData($nomodel = null, $tgl_keluar = null)
     {
-        return $this->select('tabel_induk.no_model, tabel_induk.kode_buyer, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, DATE(pengeluaran.created_at) as tgl_keluar, pengeluaran.qty_keluar, pengeluaran.box_keluar, pengeluaran.ket_keluar')
+        $builder = $this->select('tabel_induk.no_model, tabel_induk.kode_buyer, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, DATE(pengeluaran.created_at) as tgl_keluar, pengeluaran.qty_keluar, pengeluaran.box_keluar, pengeluaran.ket_keluar')
             ->join('tabel_anak', 'pengeluaran.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
             ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
-            ->groupBy('pengeluaran.id_keluar')
+            ->where('pengeluaran.hapus_jalur', '');
+        if (!empty($nomodel)) {
+            $builder->where('tabel_induk.no_model', $nomodel);
+        }
+
+        if (!empty($tgl_keluar)) {
+            $builder->where('DATE(pengeluaran.created_at)', $tgl_keluar);
+        }
+        return $builder->groupBy('pengeluaran.id_keluar')
             ->orderBy('pengeluaran.created_at, tabel_induk.no_model, tabel_anak.inisial', 'ASC')
             ->findAll();
     }

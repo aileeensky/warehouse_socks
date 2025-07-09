@@ -29,7 +29,7 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Stock Gudang</h5>
+                    <h5 class="card-title">Tabel Stock Gudang</h5>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <!-- Button Import Stock -->
                         <div class="col-md-2">
@@ -40,12 +40,12 @@
                         </div>
 
                         <!-- Button Input Stock -->
-                        <div class="col-md-2">
+                        <!-- <div class="col-md-2">
                             <a href="<?= base_url($role . '/inputstockcluster') ?>" class="btn btn-primary" style="display: flex; align-items: center;">
                                 <i class="ri-add-circle-line" style="font-size: 20px; margin-right: 5px;"></i>
                                 Input Stock
                             </a>
-                        </div>
+                        </div> -->
 
                         <!-- Icon Excel -->
                         <div class="col-md-2">
@@ -69,7 +69,7 @@
                                 <th scope="col">No Model</th>
                                 <th scope="col">Keterangan</th>
                                 <th scope="col">Detail</th>
-                                <th scope="col">Tambah</th>
+                                <!-- <th scope="col">Tambah</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -86,7 +86,7 @@
                                     <td><?= $data['no_model'] ?></td>
                                     <td><?= $data['keterangan'] ?></td>
                                     <td><a href="<?= base_url('/' . $role . '/detailstock/' . $data['jalur']) ?>"><i class="bi bi-eye"></a></td>
-                                    <td><i class="bx bx-plus-medical" data-bs-toggle="modal" data-bs-target="#inputstockModal" data-jalur="<?= $data['jalur'] ?>" data-no_model="<?= $data['no_model'] ?>" data-space="<?= $data['space'] ?>"></i></td>
+                                    <!-- <td><i class="bx bx-plus-medical" data-bs-toggle="modal" data-bs-target="#inputstockModal" data-jalur="<?= $data['jalur'] ?>" data-no_model="<?= $data['no_model'] ?>" data-space="<?= $data['space'] ?>"></i></td> -->
                                 </tr>
                             <?php
                                 $no++;
