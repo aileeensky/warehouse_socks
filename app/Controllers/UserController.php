@@ -185,15 +185,12 @@ class UserController extends BaseController
     {
         $nomodel = $this->request->getPost('cari1');
         $tgl_jalan = $this->request->getPost('cari2');
-        $packing = $this->request->getPost('cari2');
 
         $role = session()->get('role');
-        $dataPermintaan = $this->permintaanModel->getDataPermintaan($packing, $nomodel, $tgl_jalan);
-        $area_packing = $this->permintaanModel->getAreaPacking();
+        $dataPermintaan = $this->permintaanModel->getDataPermintaan($nomodel, $tgl_jalan);
 
         $data = [
             'role' => $role,
-            'area_packing' => $area_packing,
             'title' => 'Report Pemesanan Packing',
             'permintaan' => $dataPermintaan,
         ];

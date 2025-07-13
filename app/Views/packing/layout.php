@@ -173,7 +173,7 @@
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/stock') ?>">
-                    <i class="bi bi-box"></i><span>Stock</span></i>
+                    <i class="bi bi-box"></i><span>Create Schedule</span></i>
                 </a>
             </li><!-- End Forms Nav -->
 
@@ -195,11 +195,11 @@
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Dashboard</h1>
+            <h1><?= $title ?></h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="">Home</a></li>
-                    <li class="breadcrumb-item active">Dashboard</li>
+                    <li class="breadcrumb-item active"><?= $title ?></li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->

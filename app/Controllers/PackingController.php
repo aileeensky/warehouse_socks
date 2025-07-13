@@ -134,6 +134,7 @@ class PackingController extends BaseController
 
         $data = [
             'role' => $role,
+            'title' => 'Dashboard',
             'stock' => $totalStock,
             'pemasukan' => $totalPemasukan,
             'permintaan' => $totalPermintaan,
@@ -155,8 +156,8 @@ class PackingController extends BaseController
 
         $data = [
             'role' => $role,
+            'title' => 'Create Schedule',
             'admin' => $admin,
-            'title' => 'Stock Gudang',
             'stock' => $dataStock,
             'pdk' => $dataNomodel,
         ];
@@ -220,6 +221,7 @@ class PackingController extends BaseController
 
         $data = [
             'role' => $role,
+            'title' => 'Schedule Packing',
             'admin' => $admin,
             'title' => 'Schedule Packing',
             'permintaan' => $dataPermintaan,
@@ -309,6 +311,7 @@ class PackingController extends BaseController
 
         $data = [
             'role' => $role,
+            'title' => 'Status Permintaan Packing',
             'admin' => $admin,
             'title' => 'Status Permintaan Packing',
             'permintaan' => $dataPermintaan,

@@ -29,7 +29,7 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><?= $title ?></h5>
+                    <h5 class="card-title">Tabel Stock Gudang</h5>
                     <form action="<?= base_url($role . '/stock') ?>" method="post">
                         <div class="row mb-2">
                             <label for="cari" class="col-sm-2 col-form-label">No Model</label>
