@@ -145,20 +145,18 @@ class PackingController extends BaseController
 
     public function stock()
     {
-        $nomodel = $this->request->getPost('cari1');
-
         $admin = session()->get('username');
         $role = session()->get('role');
-
-        $dataStock = $this->stockModel->getAllStock($nomodel);
+        $dataJalur = $this->layoutModel->getDataJalur();
         $dataNomodel = $this->indukModel->selectNomodel();
 
         $data = [
-            'role' => $role,
-            'admin' => $admin,
+            'active' =>  $this->active,
             'title' => 'Stock Gudang',
-            'stock' => $dataStock,
+            'role' => $role,
+            'jalur' => $dataJalur,
             'pdk' => $dataNomodel,
+            'admin' => $admin,
         ];
         return view($role . '/stock', $data);
     }

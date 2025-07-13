@@ -40,15 +40,6 @@
                             <div class="col-sm-2">
                                 <input class="form-control" type="date" name="cari2">
                             </div>
-                            <label for="cari" class="col-sm-1 col-form-label">Area Packing</label>
-                            <div class="col-sm-2">
-                                <select name="area_packing" id="area_packing" class="form-select">
-                                    <option value="">All</option>
-                                    <?php foreach ($area_packing as $area) : ?>
-                                        <option value="<?= $area['area_packing'] ?>"><?= $area['area_packing'] ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
                             <div class="col-sm-2">
                                 <button class="btn btn-info">Search</button>
                             </div>
