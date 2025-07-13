@@ -84,6 +84,7 @@ $routes->group('/packing', ['filter' => 'packing'], function ($routes) {
 $routes->group('/user', ['filter' => 'user'], function ($routes) {
     $routes->get('', 'UserController::index');
     $routes->get('stock', 'UserController::stock');
+    $routes->get('detailstock/(:any)', 'GudangController::detailStock/$1');
     $routes->get('reportpemasukan', 'UserController::reportPemasukan');
     $routes->post('reportpemasukan', 'UserController::reportPemasukan');
     $routes->get('reportpermintaan', 'UserController::reportPermintaan');

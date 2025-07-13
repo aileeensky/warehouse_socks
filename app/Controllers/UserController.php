@@ -151,17 +151,32 @@ class UserController extends BaseController
     {
         $admin = session()->get('username');
         $role = session()->get('role');
-        $dataStock = $this->stockModel->getAllStock();
+        $dataJalur = $this->layoutModel->getDataJalur();
         $dataNomodel = $this->indukModel->selectNomodel();
+
+        $data = [
+            'active' =>  $this->active,
+            'title' => 'Stock Gudang',
+            'role' => $role,
+            'jalur' => $dataJalur,
+            'pdk' => $dataNomodel,
+            'admin' => $admin,
+        ];
+        return view($role . '/stock', $data);
+    }
+
+    public function detailStock($jalur)
+    {
+        $role = session()->get('role');
+        $dataStock = $this->stockModel->getDataStock($jalur);
 
         $data = [
             'title' => 'Stock Gudang',
             'role' => $role,
-            'admin' => $admin,
             'stock' => $dataStock,
-            'pdk' => $dataNomodel,
+            'jalur' => $jalur,
         ];
-        return view($role . '/stock', $data);
+        return view($role . '/detailstock', $data);
     }
 
     public function reportPemasukan()

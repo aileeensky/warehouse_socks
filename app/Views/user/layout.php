@@ -172,15 +172,16 @@
             </li><!-- End Dashboard Nav -->
 
             <li class="nav-item">
+                <a class="nav-link collapsed" href="<?= base_url('/' . $role . '/stock') ?>">
+                    <i class="bi bi-box"></i><span>Stock Gudang</span></i>
+                </a>
+            </li><!-- End Forms Nav -->
+
+            <li class="nav-item">
                 <a class="nav-link collapsed" data-bs-target="#report-nav" data-bs-toggle="collapse" href="#">
                     <i class="bi bi-file-earmark-arrow-down"></i><span>Report</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <ul id="report-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                    <li>
-                        <a href="<?= base_url('/' . $role . '/stock') ?>">
-                            <i class="bi bi-circle"></i><span>Report Stock Jalur</span>
-                        </a>
-                    </li>
                     <li>
                         <a href="<?= base_url('/' . $role . '/reportpemasukan') ?>">
                             <i class="bi bi-circle"></i><span>Report Pemasukkan</span>
