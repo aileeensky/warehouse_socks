@@ -998,15 +998,19 @@ class GudangController extends BaseController
 
     public function importStock()
     {
+        // 1) Perpanjang batas waktu agar clustering besar tidak timeout
+        ini_set('max_execution_time', 300);
+
         $admin = session()->get('username');
         $file  = $this->request->getFile('file');
         $today = new \DateTime('now');
 
+        // Validasi file
         if (! $file || ! $file->isValid() || $file->hasMoved()) {
             return redirect()->back()->with('error', 'File tidak valid.');
         }
 
-        // 1) Upload & load sheet
+        // 2) Upload & baca sheet Excel
         $filePath = WRITEPATH . 'uploads/' . $file->getName();
         $file->move(WRITEPATH . 'uploads');
         $sheetArr = IOFactory::load($filePath)
@@ -1014,7 +1018,7 @@ class GudangController extends BaseController
             ->toArray(null, true, true, true);
         unlink($filePath);
 
-        // 2) Kumpulkan semua baris yang belum punya stock
+        // 3) Kumpulkan baris baru yang belum masuk stock
         $pointsRaw = [];
         foreach (array_slice($sheetArr, 17, null, true) as $idx => $row) {
             $area  = trim($row['AA'] ?? '');
@@ -1069,40 +1073,74 @@ class GudangController extends BaseController
             return redirect()->back()->with('success', 'Semua baris sudah ter‐update stock‑nya.');
         }
 
-        // Siapkan samples untuk clustering: days + hash model
+        // 4) Siapkan samples untuk clustering: days + hash model
         $samples = [];
         foreach ($pointsRaw as $p) {
             $hashModel = crc32($p['model']);
             $samples[] = [(float)$p['days'], (float)$hashModel];
         }
 
-        // Jalankan clustering
-        $clusterCount = count($this->layoutModel->findAll());
-        $kmeans = new KMeans($clusterCount);
+        // 5) Jalankan K-Means dengan 3 cluster
+        $kmeans = new KMeans(3);
         $clusters = $kmeans->cluster($samples);
 
-        // Mapping hasil cluster ke pointsRaw
+        // 6) Inisialisasi cluster & kategori
+        foreach ($pointsRaw as &$p) {
+            $p['cluster']  = null;
+            $p['kategori'] = null;
+        }
+        unset($p);
+
+        // 7) Mapping hasil cluster
         foreach ($clusters as $clusterId => $clusterSamples) {
             foreach ($clusterSamples as $sample) {
                 foreach ($pointsRaw as &$p) {
-                    $hashModel = crc32($p['model']);
-                    if ((float)$p['days'] === $sample[0] && (float)$hashModel === $sample[1] && !isset($p['cluster'])) {
+                    if (
+                        $p['cluster'] === null
+                        && $p['days'] === $sample[0]
+                        && crc32($p['model']) === (int)$sample[1]
+                    ) {
                         $p['cluster'] = $clusterId;
                         break;
                     }
                 }
+                unset($p);
+            }
+        }
+
+        // 8) Hitung rata-rata days per cluster
+        $clusterDays = [];
+        foreach ($clusters as $clusterId => $clusterSamples) {
+            $sum = array_sum(array_column($clusterSamples, 0));
+            $clusterDays[$clusterId] = $sum / count($clusterSamples);
+        }
+        asort($clusterDays);
+        // log_message('debug', 'ClusterDays: ' . json_encode($clusterDays));
+
+        // 9) Tentukan kategori dari cluster
+        $clusterMap = [];
+        $i = 0;
+        foreach (array_keys($clusterDays) as $cid) {
+            $clusterMap[$cid] = ($i === 0 ? 'fast' : ($i === 1 ? 'medium' : 'slow'));
+            $i++;
+        }
+
+        // 10) Assign kategori ke setiap poin
+        foreach ($pointsRaw as &$p) {
+            if ($p['cluster'] !== null) {
+                $p['kategori'] = $clusterMap[$p['cluster']];
             }
         }
         unset($p);
 
-        // 5) Agregasi per id_anak
+        // 11) Agregasi per id_anak
         $agg = [];
         foreach ($pointsRaw as $p) {
-            $id = $p['id_anak'];
-            if (!isset($agg[$id])) {
+            $id  = $p['id_anak'];
+            if (! isset($agg[$id])) {
                 $agg[$id] = [
                     'id_anak'   => $id,
-                    'cluster'   => $p['cluster'],
+                    'kategori'  => $p['kategori'],       // ← sertakan kategori
                     'total_qty' => $p['qty'],
                     'box_count' => 1,
                 ];
@@ -1111,41 +1149,64 @@ class GudangController extends BaseController
                 $agg[$id]['box_count']++;
             }
         }
+        dd($agg);
+        // log_message('debug', 'AGG data: '   . json_encode($agg));
 
-        // 6) Simpan ke stock & pemasukan
+        // 12) Siapkan layout per kategori
         $layouts = $this->layoutModel->orderBy('jalur', 'ASC')->findAll();
+        // Kelompokkan jalur berdasarkan kategori
+        $layoutMap = [
+            'fast' => [],
+            'medium' => [],
+            'slow' => [],
+        ];
+
+        foreach ($layouts as $L) {
+            $prefix = strtoupper(substr($L['jalur'], 0, 1));
+            if ($prefix === 'A')     $layoutMap['fast'][]   = $L;
+            elseif ($prefix === 'B') $layoutMap['medium'][] = $L;
+            else                     $layoutMap['slow'][]   = $L;
+        }
+
+        // 13) Simpan ke stock & pemasukan
         $now = date('Y-m-d H:i:s');
-
         foreach ($agg as $data) {
-            $layout = $layouts[$data['cluster']] ?? null;
-            if (!$layout) continue;
+            $kategori         = $data['kategori'];
+            $availableLayouts = $layoutMap[$kategori] ?? [];
+            $chosenLayout     = null;
 
-            $exist = $this->stockModel
-                ->where('id_anak', $data['id_anak'])
-                ->where('jalur', $layout['jalur'])
-                ->first();
-
-            if ($exist) {
-                $this->stockModel->update($exist['id_stock'], [
-                    'qty_stock' => $exist['qty_stock'] + $data['total_qty'],
-                    'box_stock' => $exist['box_stock'] + $data['box_count'],
-                ]);
-            } else {
-                $this->stockModel->insert([
-                    'id_anak'   => $data['id_anak'],
-                    'qty_stock' => 0,
-                    'box_stock' => 0,
-                    'jalur'     => $layout['jalur'],
-                    'admin'     => $admin,
-                    'created_at' => $now,
-                ]);
+            // pilih jalur pertama yang muat
+            foreach ($availableLayouts as $L) {
+                $used = $this->stockModel
+                    ->where('jalur', $L['jalur'])
+                    ->selectSum('box_stock', 'total')
+                    ->first()['total'] ?? 0;
+                if ($used + $data['box_count'] <= $L['jumlah_box']) {
+                    $chosenLayout = $L;
+                    break;
+                }
             }
+
+            if (! $chosenLayout) {
+                // log_message('warning', "No layout for id_anak={$data['id_anak']} kategori={$kategori}");
+                continue;  // skip jika penuh semua
+            }
+
+            // Simpan ke stock dan pemasukan
+            $this->stockModel->insert([
+                'id_anak'   => $data['id_anak'],
+                'qty_stock' => 0,
+                'box_stock' => 0,
+                'jalur'     => $chosenLayout['jalur'],
+                'admin'     => $admin,
+                'created_at' => $now,
+            ]);
 
             $this->pemasukanModel->insert([
                 'id_anak'   => $data['id_anak'],
                 'qty_masuk' => $data['total_qty'],
                 'box_masuk' => $data['box_count'],
-                'jalur'     => $layout['jalur'],
+                'jalur'     => $chosenLayout['jalur'],
                 'admin'     => $admin,
                 'created_at' => $now,
             ]);
