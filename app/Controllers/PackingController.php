@@ -302,18 +302,16 @@ class PackingController extends BaseController
 
     public function statusPermintaan()
     {
-        $nomodel = $this->request->getPost('cari1');
-        $tgl_jalan = $this->request->getPost('cari2');
-
+        $tgl_jalan = $this->request->getPost('cari2') ?? date('Y-m-d', strtotime('+1 day'));
+        $nomodel = $this->request->getPost('cari1') ?? '';
         $admin = session()->get('username');
         $role = session()->get('role');
-        $dataPermintaan = $this->permintaanModel->getDataPermintaan($admin, $nomodel, $tgl_jalan);
+        $dataPermintaan = $this->permintaanModel->getDataPermintaan($admin, $tgl_jalan, $nomodel);
 
         $data = [
             'role' => $role,
             'title' => 'Status Permintaan Packing',
             'admin' => $admin,
-            'title' => 'Status Permintaan Packing',
             'permintaan' => $dataPermintaan,
         ];
         return view($role . '/statuspermintaan', $data);

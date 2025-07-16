@@ -102,8 +102,8 @@
                                     <div class="modal-body">
                                         <input type="hidden" name="admin" value="<?= $admin ?>">
                                         <div class="col-12">
-                                            <label for="gd_setting" class="form-label">Gd Setting</label>
-                                            <input type="text" class="form-control" name="gd_setting" readonly>
+                                            <!-- <label for="gd_setting" class="form-label">Gd Setting</label> -->
+                                            <input type="hidden" class="form-control" name="gd_setting" readonly>
                                         </div>
                                         <div class="col-12">
                                             <label for="no_model" class="form-label">No Model</label>

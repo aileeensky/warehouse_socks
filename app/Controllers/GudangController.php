@@ -1047,15 +1047,25 @@ class GudangController extends BaseController
 
             // Hitung days dan qty
             $days = $today->diff(new \DateTime($dataInduk['delivery']))->days;
-            $qtyBoxes = floatval($qty) / 24;
+            $qtyBoxes = doubleval($qty) / 24;
 
             // Skip jika stock sudah ada (update di sini jika perlu)
             $exists = $this->stockModel->where('id_anak', $dataAnak['id_anak'])->first();
             if ($exists) {
-                // Contoh update
-                $this->stockModel->update($exists['id_stock'], [
-                    'qty_stock' => $exists['qty_stock'] + $qtyBoxes,
-                    'box_stock' => $exists['box_stock'] + 1,
+                // Update stock yang sudah ada
+                // $this->stockModel->update($exists['id_stock'], [
+                //     'qty_stock' => $exists['qty_stock'] + $qtyBoxes,
+                //     'box_stock' => $exists['box_stock'] + 1,
+                // ]);
+
+                // Tambahkan ke tabel pemasukan
+                $this->pemasukanModel->insert([
+                    'id_anak'   => $dataAnak['id_anak'],
+                    'qty_masuk' => $qtyBoxes,
+                    'box_masuk' => 1,
+                    'jalur'     => $exists['jalur'], // ambil dari data stock yang sudah ada
+                    'admin'     => $admin,
+                    'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 continue;
             }
@@ -1075,9 +1085,9 @@ class GudangController extends BaseController
 
         // 4) Siapkan samples untuk clustering: days + hash model
         $samples = [];
-        foreach ($pointsRaw as $p) {
-            $hashModel = crc32($p['model']);
-            $samples[] = [(float)$p['days'], (float)$hashModel];
+        foreach ($pointsRaw as $point) {
+            $hashModel = crc32($point['model']);
+            $samples[] = [(float)$point['days'], (float)$hashModel];
         }
 
         // 5) Jalankan K-Means dengan 3 cluster
@@ -1085,28 +1095,32 @@ class GudangController extends BaseController
         $clusters = $kmeans->cluster($samples);
 
         // 6) Inisialisasi cluster & kategori
-        foreach ($pointsRaw as &$p) {
-            $p['cluster']  = null;
-            $p['kategori'] = null;
+        foreach ($pointsRaw as &$point) {
+            $point['cluster']  = null;
+            $point['kategori'] = null;
         }
-        unset($p);
+        unset($point);
 
         // 7) Mapping hasil cluster
         foreach ($clusters as $clusterId => $clusterSamples) {
             foreach ($clusterSamples as $sample) {
-                foreach ($pointsRaw as &$p) {
+                foreach ($pointsRaw as &$point) {
                     if (
-                        $p['cluster'] === null
-                        && $p['days'] === $sample[0]
-                        && crc32($p['model']) === (int)$sample[1]
+                        $point['cluster'] === null &&
+                        abs($point['days'] - $sample[0]) < 0.01 &&
+                        crc32($point['model']) === (int)$sample[1]
                     ) {
-                        $p['cluster'] = $clusterId;
+                        $point['cluster'] = $clusterId;
                         break;
                     }
                 }
-                unset($p);
+                unset($point);
             }
         }
+
+        // Log contoh data pertama
+        $firstPoint = reset($pointsRaw);
+        log_message('debug', 'Sample match: model=' . $firstPoint['model'] . ', days=' . $firstPoint['days'] . ', cluster=' . $firstPoint['cluster']);
 
         // 8) Hitung rata-rata days per cluster
         $clusterDays = [];
@@ -1115,7 +1129,6 @@ class GudangController extends BaseController
             $clusterDays[$clusterId] = $sum / count($clusterSamples);
         }
         asort($clusterDays);
-        // log_message('debug', 'ClusterDays: ' . json_encode($clusterDays));
 
         // 9) Tentukan kategori dari cluster
         $clusterMap = [];
@@ -1149,8 +1162,7 @@ class GudangController extends BaseController
                 $agg[$id]['box_count']++;
             }
         }
-        dd($agg);
-        // log_message('debug', 'AGG data: '   . json_encode($agg));
+        // var_dump($agg);
 
         // 12) Siapkan layout per kategori
         $layouts = $this->layoutModel->orderBy('jalur', 'ASC')->findAll();
@@ -1188,7 +1200,6 @@ class GudangController extends BaseController
             }
 
             if (! $chosenLayout) {
-                // log_message('warning', "No layout for id_anak={$data['id_anak']} kategori={$kategori}");
                 continue;  // skip jika penuh semua
             }
 
