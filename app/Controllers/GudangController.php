@@ -1047,14 +1047,14 @@ class GudangController extends BaseController
 
             // Hitung days dan qty
             $days = $today->diff(new \DateTime($dataInduk['delivery']))->days;
-            $qtyBoxes = doubleval($qty) / 24;
+            $qtyBoxes = round(doubleval($qty) / 24, 2);
 
             // Skip jika stock sudah ada (update di sini jika perlu)
             $exists = $this->stockModel->where('id_anak', $dataAnak['id_anak'])->first();
             if ($exists) {
                 // Update stock yang sudah ada
                 // $this->stockModel->update($exists['id_stock'], [
-                //     'qty_stock' => $exists['qty_stock'] + $qtyBoxes,
+                //     'qty_stock' => round($exists['qty_stock'] + $qtyBoxes, 2),
                 //     'box_stock' => $exists['box_stock'] + 1,
                 // ]);
 
@@ -1146,6 +1146,7 @@ class GudangController extends BaseController
         }
         unset($p);
 
+
         // 11) Agregasi per id_anak
         $agg = [];
         foreach ($pointsRaw as $p) {
@@ -1180,7 +1181,17 @@ class GudangController extends BaseController
             else                     $layoutMap['slow'][]   = $L;
         }
 
-        // 13) Simpan ke stock & pemasukan
+        // 13) Inisialisasi kapasitas sisa dari setiap jalur
+        $jalurCapacity = [];
+        foreach ($layouts as $L) {
+            $used = $this->stockModel
+                ->where('jalur', $L['jalur'])
+                ->selectSum('box_stock', 'total')
+                ->first()['total'] ?? 0;
+            $jalurCapacity[$L['jalur']] = $L['jumlah_box'] - $used;
+        }
+
+        // 14) Simpan ke stock & pemasukan
         $now = date('Y-m-d H:i:s');
         foreach ($agg as $data) {
             $kategori         = $data['kategori'];
@@ -1189,12 +1200,10 @@ class GudangController extends BaseController
 
             // pilih jalur pertama yang muat
             foreach ($availableLayouts as $L) {
-                $used = $this->stockModel
-                    ->where('jalur', $L['jalur'])
-                    ->selectSum('box_stock', 'total')
-                    ->first()['total'] ?? 0;
-                if ($used + $data['box_count'] <= $L['jumlah_box']) {
+                $sisa = $jalurCapacity[$L['jalur']] ?? 0;
+                if ($sisa >= $data['box_count']) {
                     $chosenLayout = $L;
+                    $jalurCapacity[$L['jalur']] -= $data['box_count']; // Kurangi langsung di memori
                     break;
                 }
             }
@@ -1215,7 +1224,7 @@ class GudangController extends BaseController
 
             $this->pemasukanModel->insert([
                 'id_anak'   => $data['id_anak'],
-                'qty_masuk' => $data['total_qty'],
+                'qty_masuk' => round($data['total_qty'], 2),
                 'box_masuk' => $data['box_count'],
                 'jalur'     => $chosenLayout['jalur'],
                 'admin'     => $admin,
