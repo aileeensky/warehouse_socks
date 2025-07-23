@@ -1,5 +1,7 @@
 <?php $this->extend($role . '/layout'); ?>
 <?php $this->section('content'); ?>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
 <section class="section dashboard">
     <div class="row">
 
@@ -152,7 +154,7 @@
                 </div><!-- End Pengeluaran Card -->
 
                 <!-- Reports -->
-                <div class="col-12">
+                <div class="col-6">
                     <div class="card">
 
                         <div class="filter">
@@ -237,6 +239,50 @@
 
                     </div>
                 </div><!-- End Reports -->
+
+                <!-- Kategori Cluster -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Kategori Clusters</h5>
+
+                            <!-- Pie Chart -->
+                            <canvas id="pieChart" style="max-height: 400px;"></canvas>
+                            <script>
+                                document.addEventListener("DOMContentLoaded", () => {
+                                    const pieData = <?= json_encode($pieData); ?>;
+
+                                    new Chart(document.querySelector('#pieChart'), {
+                                        type: 'pie',
+                                        data: {
+                                            labels: [
+                                                'Fast Moving',
+                                                'Slow Moving',
+                                                'Medium Moving'
+                                            ],
+                                            datasets: [{
+                                                label: 'Kategori Clusters',
+                                                data: [
+                                                    pieData.fastMoving,
+                                                    pieData.slowMoving,
+                                                    pieData.mediumMoving
+                                                ],
+                                                backgroundColor: [
+                                                    'rgb(255, 99, 132)',
+                                                    'rgb(54, 162, 235)',
+                                                    'rgb(255, 205, 86)'
+                                                ],
+                                                hoverOffset: 4
+                                            }]
+                                        }
+                                    });
+                                });
+                            </script>
+                            <!-- End Pie Chart -->
+
+                        </div>
+                    </div>
+                </div><!-- Kategori Cluster -->
             </div>
         </div><!-- End Left side columns -->
 

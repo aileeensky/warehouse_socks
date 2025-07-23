@@ -136,6 +136,31 @@ class GudangController extends BaseController
             'pengeluaran' => $pengeluaranData,
         ]);
 
+        // Composisi Clusters
+        $fastMoving = $this->stockModel
+            ->selectCount('id_stock')
+            ->like('jalur', 'A%')
+            ->get()
+            ->getRow()
+            ->id_stock ?? 0;
+        $mediumMoving = $this->stockModel
+            ->selectCount('id_stock')
+            ->like('jalur', 'B%')
+            ->get()
+            ->getRow()
+            ->id_stock ?? 0;
+        $slowMoving = $this->stockModel
+            ->selectCount('id_stock')
+            ->like('jalur', 'C%')
+            ->get()
+            ->getRow()
+            ->id_stock ?? 0;
+        $pieData = [
+            'fastMoving' => $fastMoving,
+            'mediumMoving' => $mediumMoving,
+            'slowMoving' => $slowMoving
+        ];
+
         $data = [
             'active' =>  $this->active,
             'title' => 'Dashboard',
@@ -145,6 +170,7 @@ class GudangController extends BaseController
             'permintaan' => $totalPermintaan,
             'pengeluaran' => $totalPengeluaran,
             'chartData' => $chartData,
+            'pieData' => $pieData,
         ];
         return view($role . '/index', $data);
     }
@@ -1232,6 +1258,297 @@ class GudangController extends BaseController
             ]);
         }
 
+        return redirect()->back()->with('success', 'Import & clustering selesai!');
+    }
+
+    public function importStockTanpaLibrary()
+    {
+        ini_set('max_execution_time', 300);
+        $admin = session()->get('username');
+        $file  = $this->request->getFile('file');
+        $today = new \DateTime('now');
+
+        if (! $file || ! $file->isValid() || $file->hasMoved()) {
+            return redirect()->back()->with('error', 'File tidak valid.');
+        }
+
+        $filePath = WRITEPATH . 'uploads/' . $file->getName();
+        $file->move(WRITEPATH . 'uploads');
+        $sheetArr = IOFactory::load($filePath)
+            ->getActiveSheet()
+            ->toArray(null, true, true, true);
+        unlink($filePath);
+
+        $pointsRaw = [];
+        $failedRows = [];
+        foreach (array_slice($sheetArr, 17, null, true) as $idx => $row) {
+            $area  = trim($row['AA'] ?? '');
+            $style = trim($row['E']  ?? '');
+            $qty   = trim($row['M']  ?? '');
+            $model = trim($row['V']  ?? '');
+            $boxId = trim($row['X']  ?? '');
+
+            if (!$area || !$style || !$qty || !$model || !$boxId) {
+                $failedRows[] = $idx + 1;
+                continue;
+            }
+
+            $dataInduk = $this->indukModel
+                ->select('id_induk, delivery, kode_buyer AS buyer')
+                ->where('no_model', $model)
+                ->first();
+            if (!$dataInduk) {
+                $failedRows[] = $idx + 1;
+                continue;
+            }
+
+            $dataAnak = $this->anakModel
+                ->select('id_anak')
+                ->where('id_induk', $dataInduk['id_induk'])
+                ->where('area',     $area)
+                ->where('style',    $style)
+                ->first();
+            if (!$dataAnak) {
+                $failedRows[] = $idx + 1;
+                continue;
+            }
+
+            $days = $today->diff(new \DateTime($dataInduk['delivery']))->days;
+            $qtyBoxes = round(doubleval($qty) / 24, 2);
+
+            $exists = $this->stockModel->where('id_anak', $dataAnak['id_anak'])->first();
+            if ($exists) {
+                $this->pemasukanModel->insert([
+                    'id_anak'   => $dataAnak['id_anak'],
+                    'qty_masuk' => $qtyBoxes,
+                    'box_masuk' => 1,
+                    'jalur'     => $exists['jalur'],
+                    'admin'     => $admin,
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+                continue;
+            }
+
+            $pointsRaw[] = [
+                'id_anak' => $dataAnak['id_anak'],
+                'model'   => $model,
+                'days'    => $days,
+                'qty'     => $qtyBoxes,
+                'box_id'  => $boxId,
+            ];
+        }
+
+        if (empty($pointsRaw)) {
+            $msg = 'Semua baris sudah ter‐update stock‑nya.';
+            if (!empty($failedRows)) {
+                $msg .= ' Beberapa baris gagal diproses: ' . implode(', ', $failedRows) . '.';
+            }
+            return redirect()->back()->with('success', $msg);
+        }
+
+        // Step 4: Siapkan samples untuk clustering
+        $samples = [];
+        foreach ($pointsRaw as $point) {
+            $hashModel = crc32($point['model']);
+            $samples[] = [(float)$point['days'], (float)$hashModel];
+        }
+
+        // Step 5: K-Means manual (tanpa library)
+        $k = 3;
+        $maxIterations = 100;
+        $centroids = [];
+        $usedIndexes = [];
+        while (count($centroids) < $k) {
+            $i = rand(0, count($samples) - 1);
+            if (!in_array($i, $usedIndexes)) {
+                $centroids[] = $samples[$i];
+                $usedIndexes[] = $i;
+            }
+        }
+
+        for ($iter = 0; $iter < $maxIterations; $iter++) {
+            $clusters = array_fill(0, $k, []);
+            foreach ($samples as $sample) {
+                $minDistance = null;
+                $closest = null;
+                foreach ($centroids as $cIdx => $centroid) {
+                    $dist = sqrt(
+                        pow($sample[0] - $centroid[0], 2) +
+                            pow($sample[1] - $centroid[1], 2)
+                    );
+                    if ($minDistance === null || $dist < $minDistance) {
+                        $minDistance = $dist;
+                        $closest = $cIdx;
+                    }
+                }
+                $clusters[$closest][] = $sample;
+            }
+
+            $newCentroids = [];
+            foreach ($clusters as $clusterSamples) {
+                $count = count($clusterSamples);
+                if ($count === 0) {
+                    $newCentroids[] = $centroids[count($newCentroids)];
+                    continue;
+                }
+                $sumX = $sumY = 0;
+                foreach ($clusterSamples as $s) {
+                    $sumX += $s[0];
+                    $sumY += $s[1];
+                }
+                $newCentroids[] = [$sumX / $count, $sumY / $count];
+            }
+
+            $converged = true;
+            for ($i = 0; $i < $k; $i++) {
+                if (
+                    abs($newCentroids[$i][0] - $centroids[$i][0]) > 0.0001 ||
+                    abs($newCentroids[$i][1] - $centroids[$i][1]) > 0.0001
+                ) {
+                    $converged = false;
+                    break;
+                }
+            }
+
+            $centroids = $newCentroids;
+            if ($converged) break;
+        }
+
+        // Step 6: Inisialisasi cluster & kategori
+        foreach ($pointsRaw as &$point) {
+            $point['cluster']  = null;
+            $point['kategori'] = null;
+        }
+        unset($point);
+
+        // Step 7: Mapping hasil cluster
+        foreach ($clusters as $clusterId => $clusterSamples) {
+            foreach ($clusterSamples as $sample) {
+                foreach ($pointsRaw as &$point) {
+                    if (
+                        $point['cluster'] === null &&
+                        abs($point['days'] - $sample[0]) < 0.01 &&
+                        crc32($point['model']) === (int)$sample[1]
+                    ) {
+                        $point['cluster'] = $clusterId;
+                        break;
+                    }
+                }
+                unset($point);
+            }
+        }
+
+        $firstPoint = reset($pointsRaw);
+        log_message('debug', 'Sample match: model=' . $firstPoint['model'] . ', days=' . $firstPoint['days'] . ', cluster=' . $firstPoint['cluster']);
+
+        // Step 8: Hitung rata-rata days per cluster
+        $clusterDays = [];
+        foreach ($clusters as $clusterId => $clusterSamples) {
+            $sum = array_sum(array_column($clusterSamples, 0));
+            $clusterDays[$clusterId] = $sum / count($clusterSamples);
+        }
+        asort($clusterDays);
+
+        // Step 9: Tentukan kategori dari cluster
+        $clusterMap = [];
+        $i = 0;
+        foreach (array_keys($clusterDays) as $cid) {
+            $clusterMap[$cid] = ($i === 0 ? 'fast' : ($i === 1 ? 'medium' : 'slow'));
+            $i++;
+        }
+
+        // Step 10: Assign kategori ke setiap poin
+        foreach ($pointsRaw as &$p) {
+            if ($p['cluster'] !== null) {
+                $p['kategori'] = $clusterMap[$p['cluster']];
+            }
+        }
+        unset($p);
+
+        // Step 11: Agregasi per id_anak
+        $agg = [];
+        foreach ($pointsRaw as $p) {
+            $id  = $p['id_anak'];
+            if (! isset($agg[$id])) {
+                $agg[$id] = [
+                    'id_anak'   => $id,
+                    'kategori'  => $p['kategori'],
+                    'total_qty' => $p['qty'],
+                    'box_count' => 1,
+                ];
+            } else {
+                $agg[$id]['total_qty'] += $p['qty'];
+                $agg[$id]['box_count']++;
+            }
+        }
+
+        // Step 12: Siapkan layout per kategori
+        $layouts = $this->layoutModel->orderBy('jalur', 'ASC')->findAll();
+        $layoutMap = ['fast' => [], 'medium' => [], 'slow' => []];
+
+        foreach ($layouts as $L) {
+            $prefix = strtoupper(substr($L['jalur'], 0, 1));
+            if ($prefix === 'A')     $layoutMap['fast'][]   = $L;
+            elseif ($prefix === 'B') $layoutMap['medium'][] = $L;
+            else                     $layoutMap['slow'][]   = $L;
+        }
+
+        // Step 13: Inisialisasi kapasitas sisa dari setiap jalur
+        $jalurCapacity = [];
+        foreach ($layouts as $L) {
+            $used = $this->stockModel
+                ->where('jalur', $L['jalur'])
+                ->selectSum('box_stock', 'total')
+                ->first()['total'] ?? 0;
+            $jalurCapacity[$L['jalur']] = $L['jumlah_box'] - $used;
+        }
+
+        // Step 14: Simpan ke stock & pemasukan
+        $now = date('Y-m-d H:i:s');
+        foreach ($agg as $data) {
+            $kategori         = $data['kategori'];
+            $availableLayouts = $layoutMap[$kategori] ?? [];
+            $chosenLayout     = null;
+
+            foreach ($availableLayouts as $L) {
+                $sisa = $jalurCapacity[$L['jalur']] ?? 0;
+
+                // Cek apakah sisa cukup
+                if ($sisa >= $data['box_count']) {
+                    $chosenLayout = $L;
+                    $jalurCapacity[$L['jalur']] -= $data['box_count']; // update kapasitas memori!
+                    break;
+                }
+            }
+
+            if (! $chosenLayout) {
+                continue;
+            }
+
+            $this->stockModel->insert([
+                'id_anak'   => $data['id_anak'],
+                'qty_stock' => 0,
+                'box_stock' => 0,
+                'jalur'     => $chosenLayout['jalur'],
+                'admin'     => $admin,
+                'created_at' => $now,
+            ]);
+
+            $this->pemasukanModel->insert([
+                'id_anak'   => $data['id_anak'],
+                'qty_masuk' => round($data['total_qty'], 2),
+                'box_masuk' => $data['box_count'],
+                'jalur'     => $chosenLayout['jalur'],
+                'admin'     => $admin,
+                'created_at' => $now,
+            ]);
+        }
+
+        // Final redirect with alert
+        $msg = 'Import & clustering selesai!';
+        if (!empty($failedRows)) {
+            $msg .= ' Beberapa baris gagal diproses: ' . implode(', ', $failedRows) . '.';
+        }
         return redirect()->back()->with('success', 'Import & clustering selesai!');
     }
 }
