@@ -136,7 +136,7 @@ class GudangController extends BaseController
             'pengeluaran' => $pengeluaranData,
         ]);
 
-        // Composisi Clusters
+        // Kategori Clusters
         $fastMoving = $this->stockModel
             ->selectCount('id_stock')
             ->like('jalur', 'A%')
@@ -1281,6 +1281,8 @@ class GudangController extends BaseController
 
         $pointsRaw = [];
         $failedRows = [];
+        $error = [];
+
         foreach (array_slice($sheetArr, 17, null, true) as $idx => $row) {
             $area  = trim($row['AA'] ?? '');
             $style = trim($row['E']  ?? '');
@@ -1326,6 +1328,7 @@ class GudangController extends BaseController
                     'admin'     => $admin,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
+
                 continue;
             }
 
