@@ -95,7 +95,7 @@ class ExcelController extends BaseController
             $sheet->setCellValue('D' . $row, $data['space']);
             $sheet->setCellValue('E' . $row, $data['qty_stock']);
             $sheet->setCellValue('F' . $row, $data['box_stock']);
-            $sheet->setCellValue('G' . $row, $data['no_model']);
+            $sheet->setCellValue('G' . $row, $data['models']);
             $sheet->setCellValue('H' . $row, $data['keterangan']);
 
             // Align center untuk semua data

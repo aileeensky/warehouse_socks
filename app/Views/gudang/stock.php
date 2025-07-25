@@ -8,7 +8,7 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
-                        text: '<?= session()->getFlashdata('success') ?>',
+                        html: '<?= session()->getFlashdata('success') ?>',
                     });
                 });
             </script>
@@ -20,7 +20,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Error!',
-                        text: '<?= session()->getFlashdata('error') ?>',
+                        html: '<?= session()->getFlashdata('error') ?>',
                     });
                 });
             </script>
@@ -83,10 +83,10 @@
                                     <td><?= $data['space'] ?></td>
                                     <td><?= $data['qty_stock'] ?></td>
                                     <td><?= $data['box_stock'] ?></td>
-                                    <td><?= $data['no_model'] ?></td>
+                                    <td><?= $data['models'] ?></td>
                                     <td><?= $data['keterangan'] ?></td>
                                     <td><a href="<?= base_url('/' . $role . '/detailstock/' . $data['jalur']) ?>"><i class="bi bi-eye"></a></td>
-                                    <!-- <td><i class="bx bx-plus-medical" data-bs-toggle="modal" data-bs-target="#inputstockModal" data-jalur="<?= $data['jalur'] ?>" data-no_model="<?= $data['no_model'] ?>" data-space="<?= $data['space'] ?>"></i></td> -->
+                                    <!-- <td><i class="bx bx-plus-medical" data-bs-toggle="modal" data-bs-target="#inputstockModal" data-jalur="<?= $data['jalur'] ?>" data-no_model="<?= $data['models'] ?>" data-space="<?= $data['space'] ?>"></i></td> -->
                                 </tr>
                             <?php
                                 $no++;

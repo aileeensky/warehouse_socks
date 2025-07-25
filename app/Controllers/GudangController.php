@@ -327,7 +327,7 @@ class GudangController extends BaseController
         $role = session()->get('role');
         $dataJalur = $this->layoutModel->getDataJalur();
         $dataNomodel = $this->indukModel->selectNomodel();
-
+        // dd ($dataJalur, $dataNomodel);
         $data = [
             'active' =>  $this->active,
             'title' => 'Stock Gudang',
@@ -451,7 +451,7 @@ class GudangController extends BaseController
     {
         $role = session()->get('role');
         $dataStock = $this->stockModel->getDataStock($jalur);
-
+        // dd ($dataStock);
         $data = [
             'title' => 'Stock Gudang',
             'role' => $role,
@@ -1264,67 +1264,136 @@ class GudangController extends BaseController
     public function importStockTanpaLibrary()
     {
         ini_set('max_execution_time', 300);
-        $admin = session()->get('username');
-        $file  = $this->request->getFile('file');
-        $today = new \DateTime('now');
+        $admin         = session()->get('username');
+        $file          = $this->request->getFile('file');
+        $today         = (new \DateTime('now'))->modify('+2 day')->setTime(0, 0, 0);
 
+        // Validasi file
         if (! $file || ! $file->isValid() || $file->hasMoved()) {
             return redirect()->back()->with('error', 'File tidak valid.');
         }
 
-        $filePath = WRITEPATH . 'uploads/' . $file->getName();
-        $file->move(WRITEPATH . 'uploads');
-        $sheetArr = IOFactory::load($filePath)
+        // Upload & baca sheet
+        $uploadPath    = WRITEPATH . 'uploads/';
+        $file->move($uploadPath);
+        $fullPath      = $uploadPath . $file->getName();
+        $sheetArr      = \PhpOffice\PhpSpreadsheet\IOFactory::load($fullPath)
             ->getActiveSheet()
             ->toArray(null, true, true, true);
-        unlink($filePath);
+        unlink($fullPath);
 
-        $pointsRaw = [];
-        $failedRows = [];
-        $error = [];
+        $failedRows      = [];
+        $errorDetails    = [];
+        $pointsRaw       = [];
+        $skippedExists   = [];
 
+        // Siapkan layout & kapasitas awal per jalur
+        $layouts         = $this->layoutModel->orderBy('jalur', 'ASC')->findAll();
+        $jalurCapacity   = [];
+        foreach ($layouts as $L) {
+            $used = $this->stockModel
+                ->where('jalur', $L['jalur'])
+                ->selectSum('box_stock', 'total')
+                ->first()['total'] ?? 0;
+            $jalurCapacity[$L['jalur']] = $L['jumlah_box'] - $used;
+        }
+
+        // Proses tiap baris: validasi & ambil data Induk/Anak
+        $modelDateLane = []; // Inisialisasi array untuk mapping model+tanggal ke jalur
         foreach (array_slice($sheetArr, 17, null, true) as $idx => $row) {
-            $area  = trim($row['AA'] ?? '');
-            $style = trim($row['E']  ?? '');
-            $qty   = trim($row['M']  ?? '');
-            $model = trim($row['V']  ?? '');
-            $boxId = trim($row['X']  ?? '');
+            $rowNum = $idx + 1;
+            $area   = trim($row['AA'] ?? '');
+            $style  = trim($row['E']  ?? '');
+            $qty    = trim($row['M']  ?? '');
+            $model  = trim($row['V']  ?? '');
+            $boxId  = trim($row['X']  ?? '');
 
-            if (!$area || !$style || !$qty || !$model || !$boxId) {
-                $failedRows[] = $idx + 1;
+            // Jika model, area, atau style kosong, langsung continue
+            if (! $model || ! $area || ! $style) {
+                continue;
+            }
+            // Validasi kolom wajib
+            if (! $qty || ! $boxId) {
+                $failedRows[] = $rowNum;
+                $errorDetails[$rowNum] = 'Data kolom tidak lengkap';
                 continue;
             }
 
+            // Cari data induk
             $dataInduk = $this->indukModel
-                ->select('id_induk, delivery, kode_buyer AS buyer')
+                ->select('id_induk, delivery')
                 ->where('no_model', $model)
                 ->first();
-            if (!$dataInduk) {
-                $failedRows[] = $idx + 1;
+                // dd ($dataInduk);
+            if (! $dataInduk) {
+                $failedRows[] = $rowNum;
+                $errorDetails[$rowNum] = 'Model tidak ditemukan';
                 continue;
             }
 
+            // Cari data anak
             $dataAnak = $this->anakModel
                 ->select('id_anak')
-                ->where('id_induk', $dataInduk['id_induk'])
-                ->where('area',     $area)
-                ->where('style',    $style)
+                ->where([
+                    'id_induk' => $dataInduk['id_induk'],
+                    'area'     => $area,
+                    'style'    => $style
+                ])
                 ->first();
-            if (!$dataAnak) {
-                $failedRows[] = $idx + 1;
+                // dd ($dataAnak);
+            if (! $dataAnak) {
+                $failedRows[] = $rowNum;
+                $errorDetails[$rowNum] = 'Data anak (area/style) tidak ditemukan';
                 continue;
             }
 
-            $days = $today->diff(new \DateTime($dataInduk['delivery']))->days;
-            $qtyBoxes = round(doubleval($qty) / 24, 2);
+            $days     = $today->diff(new \DateTime($dataInduk['delivery']))->days;
+            $qtyBoxes = round((float)$qty / 24, 2);
 
-            $exists = $this->stockModel->where('id_anak', $dataAnak['id_anak'])->first();
+            // Cek stock eksisting dan penempatan berdasarkan model+tanggal
+            $exists = $this->stockModel->where('id_anak', $dataAnak['id_anak'])
+                ->where("DATE(created_at) = '{$today->format('Y-m-d')}'", null, false)
+                ->first();
+                // dd ($exists);
             if ($exists) {
+                // Key unik berdasarkan model + tanggal delivery
+                $deliveryDate   = (new \DateTime($dataInduk['delivery']))->format('Y-m-d');
+                $modelDateKey   = $model . '|' . $today->format('Y-m-d');
+
+                // Simpan jalur awal jika belum ada
+                if (! isset($modelDateLane[$modelDateKey])) {
+                    $modelDateLane[$modelDateKey] = $exists['jalur'];
+                }
+                $j = $modelDateLane[$modelDateKey];
+
+                // Jika kapasitas jalur j sudah habis, cari jalur lain yang masih punya space
+                if (($jalurCapacity[$j] ?? 0) < 1) {
+                    foreach ($layouts as $L) {
+                        if (($jalurCapacity[$L['jalur']] ?? 0) >= 1) {
+                            $j = $L['jalur'];
+                            $modelDateLane[$modelDateKey] = $j;  // update jalur untuk model+tanggal ini
+                            // Catat error detail
+                            $skippedExists[]       = $rowNum;
+                            $errorDetails[$rowNum] = "Jalur {$exists['jalur']} penuh, dialihkan ke jalur {$j}";
+                            continue;
+                        }
+                    }
+                }
+
+                // Kalau setelah cari tetap penuh, skip baris
+                if (($jalurCapacity[$j] ?? 0) < 1) {
+                    $skippedExists[]       = $rowNum;
+                    $errorDetails[$rowNum] = "Semua jalur penuh untuk model {$model} pada {$deliveryDate}";
+                    continue;
+                }
+
+                // Kurangi memori kapasitas untuk 1 box, lalu insert
+                $jalurCapacity[$j]--;
                 $this->pemasukanModel->insert([
                     'id_anak'   => $dataAnak['id_anak'],
                     'qty_masuk' => $qtyBoxes,
                     'box_masuk' => 1,
-                    'jalur'     => $exists['jalur'],
+                    'jalur'     => $j,
                     'admin'     => $admin,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
@@ -1332,6 +1401,8 @@ class GudangController extends BaseController
                 continue;
             }
 
+
+            // Kumpulkan data baru untuk clustering
             $pointsRaw[] = [
                 'id_anak' => $dataAnak['id_anak'],
                 'model'   => $model,
@@ -1341,80 +1412,71 @@ class GudangController extends BaseController
             ];
         }
 
-        if (empty($pointsRaw)) {
-            $msg = 'Semua baris sudah ter‐update stock‑nya.';
-            if (!empty($failedRows)) {
-                $msg .= ' Beberapa baris gagal diproses: ' . implode(', ', $failedRows) . '.';
+        // Jika tidak ada poin baru dan tidak ada exists yang skip
+        if (empty($pointsRaw) && empty($skippedExists)) {
+            // Komposisi pesan
+            $msg = 'Semua baris telah terproses.';
+            if ($failedRows) {
+                $msg .= ' Baris gagal: ' . implode(', ', $failedRows) . '.';
+                $msg .= '\nDetail: ' . json_encode($errorDetails);
+                return redirect()->back()->with('error', nl2br($msg));
             }
             return redirect()->back()->with('success', $msg);
         }
 
         // Step 4: Siapkan samples untuk clustering
         $samples = [];
-        foreach ($pointsRaw as $point) {
-            $hashModel = crc32($point['model']);
-            $samples[] = [(float)$point['days'], (float)$hashModel];
+        foreach ($pointsRaw as $p) {
+            $samples[] = [(float)$p['days'], (float)crc32($p['model'])];
         }
 
-        // Step 5: K-Means manual (tanpa library)
-        $k = 3;
-        $maxIterations = 100;
-        $centroids = [];
-        $usedIndexes = [];
-        while (count($centroids) < $k) {
-            $i = rand(0, count($samples) - 1);
-            if (!in_array($i, $usedIndexes)) {
+        $clusters = [];
+        if (count($samples) > 0) {
+            // Tentukan k tidak lebih besar dari jumlah samples
+            $k = min(3, count($samples));
+            $maxIter = 100;
+
+            // Inisialisasi centroid acak
+            $centroids = [];
+            $indexes   = array_keys($samples);
+            shuffle($indexes);
+            $init = array_slice($indexes, 0, $k);
+            foreach ($init as $i) {
                 $centroids[] = $samples[$i];
-                $usedIndexes[] = $i;
             }
-        }
 
-        for ($iter = 0; $iter < $maxIterations; $iter++) {
-            $clusters = array_fill(0, $k, []);
-            foreach ($samples as $sample) {
-                $minDistance = null;
-                $closest = null;
-                foreach ($centroids as $cIdx => $centroid) {
-                    $dist = sqrt(
-                        pow($sample[0] - $centroid[0], 2) +
-                            pow($sample[1] - $centroid[1], 2)
-                    );
-                    if ($minDistance === null || $dist < $minDistance) {
-                        $minDistance = $dist;
-                        $closest = $cIdx;
+            // Iterasi K-Means
+            for ($iter = 0; $iter < $maxIter; $iter++) {
+                // Assign samples ke cluster
+                $newClusters = array_fill(0, $k, []);
+                foreach ($samples as $s) {
+                    $best = 0;
+                    $minD = PHP_FLOAT_MAX;
+                    foreach ($centroids as $ci => $c) {
+                        $d = sqrt(pow($s[0] - $c[0], 2) + pow($s[1] - $c[1], 2));
+                        if ($d < $minD) {
+                            $minD = $d;
+                            $best = $ci;
+                        }
                     }
+                    $newClusters[$best][] = $s;
                 }
-                $clusters[$closest][] = $sample;
+                // Hitung centroid baru
+                $converged = true;
+                foreach ($newClusters as $ci => $group) {
+                    if (empty($group)) continue;
+                    $sumX = array_sum(array_column($group, 0));
+                    $sumY = array_sum(array_column($group, 1));
+                    $count = count($group);
+                    $newC = [$sumX / $count, $sumY / $count];
+                    if (abs($newC[0] - $centroids[$ci][0]) > 1e-4 || abs($newC[1] - $centroids[$ci][1]) > 1e-4) {
+                        $converged = false;
+                    }
+                    $centroids[$ci] = $newC;
+                }
+                $clusters = $newClusters;
+                if ($converged) break;
             }
-
-            $newCentroids = [];
-            foreach ($clusters as $clusterSamples) {
-                $count = count($clusterSamples);
-                if ($count === 0) {
-                    $newCentroids[] = $centroids[count($newCentroids)];
-                    continue;
-                }
-                $sumX = $sumY = 0;
-                foreach ($clusterSamples as $s) {
-                    $sumX += $s[0];
-                    $sumY += $s[1];
-                }
-                $newCentroids[] = [$sumX / $count, $sumY / $count];
-            }
-
-            $converged = true;
-            for ($i = 0; $i < $k; $i++) {
-                if (
-                    abs($newCentroids[$i][0] - $centroids[$i][0]) > 0.0001 ||
-                    abs($newCentroids[$i][1] - $centroids[$i][1]) > 0.0001
-                ) {
-                    $converged = false;
-                    break;
-                }
-            }
-
-            $centroids = $newCentroids;
-            if ($converged) break;
         }
 
         // Step 6: Inisialisasi cluster & kategori
@@ -1442,7 +1504,6 @@ class GudangController extends BaseController
         }
 
         $firstPoint = reset($pointsRaw);
-        log_message('debug', 'Sample match: model=' . $firstPoint['model'] . ', days=' . $firstPoint['days'] . ', cluster=' . $firstPoint['cluster']);
 
         // Step 8: Hitung rata-rata days per cluster
         $clusterDays = [];
@@ -1459,7 +1520,7 @@ class GudangController extends BaseController
             $clusterMap[$cid] = ($i === 0 ? 'fast' : ($i === 1 ? 'medium' : 'slow'));
             $i++;
         }
-
+        // dd ($clusterMap);
         // Step 10: Assign kategori ke setiap poin
         foreach ($pointsRaw as &$p) {
             if ($p['cluster'] !== null) {
@@ -1468,10 +1529,10 @@ class GudangController extends BaseController
         }
         unset($p);
 
-        // Step 11: Agregasi per id_anak
+        // Setelah clustering -> agregasi per anak
         $agg = [];
         foreach ($pointsRaw as $p) {
-            $id  = $p['id_anak'];
+            $id = $p['id_anak'];
             if (! isset($agg[$id])) {
                 $agg[$id] = [
                     'id_anak'   => $id,
@@ -1485,73 +1546,80 @@ class GudangController extends BaseController
             }
         }
 
-        // Step 12: Siapkan layout per kategori
-        $layouts = $this->layoutModel->orderBy('jalur', 'ASC')->findAll();
+        // Mapping layout berdasarkan kategori
         $layoutMap = ['fast' => [], 'medium' => [], 'slow' => []];
-
         foreach ($layouts as $L) {
             $prefix = strtoupper(substr($L['jalur'], 0, 1));
-            if ($prefix === 'A')     $layoutMap['fast'][]   = $L;
+            if ($prefix === 'A') $layoutMap['fast'][]   = $L;
             elseif ($prefix === 'B') $layoutMap['medium'][] = $L;
-            else                     $layoutMap['slow'][]   = $L;
+            else $layoutMap['slow'][] = $L;
         }
 
-        // Step 13: Inisialisasi kapasitas sisa dari setiap jalur
-        $jalurCapacity = [];
-        foreach ($layouts as $L) {
-            $used = $this->stockModel
-                ->where('jalur', $L['jalur'])
-                ->selectSum('box_stock', 'total')
-                ->first()['total'] ?? 0;
-            $jalurCapacity[$L['jalur']] = $L['jumlah_box'] - $used;
-        }
+        // Simpan untuk poin baru
+        $now         = date('Y-m-d H:i:s');
+        $skippedNew  = [];
 
-        // Step 14: Simpan ke stock & pemasukan
-        $now = date('Y-m-d H:i:s');
         foreach ($agg as $data) {
-            $kategori         = $data['kategori'];
-            $availableLayouts = $layoutMap[$kategori] ?? [];
-            $chosenLayout     = null;
-
-            foreach ($availableLayouts as $L) {
-                $sisa = $jalurCapacity[$L['jalur']] ?? 0;
-
-                // Cek apakah sisa cukup
-                if ($sisa >= $data['box_count']) {
-                    $chosenLayout = $L;
-                    $jalurCapacity[$L['jalur']] -= $data['box_count']; // update kapasitas memori!
+            $list   = $layoutMap[$data['kategori']] ?? [];
+            $chosen = null;
+            foreach ($list as $L) {
+                if (($jalurCapacity[$L['jalur']] ?? 0) >= $data['box_count']) {
+                    $chosen = $L;
                     break;
                 }
             }
-
-            if (! $chosenLayout) {
+            if (! $chosen) {
+                $skippedNew[] = $data['id_anak'];
+                $errorDetails['new_' . $data['id_anak']] = 'Tidak ada kapasitas untuk kategori ' . $data['kategori'];
                 continue;
             }
 
+            $jalurCapacity[$chosen['jalur']] -= $data['box_count'];
+            // Insert stock & pemasukan
             $this->stockModel->insert([
                 'id_anak'   => $data['id_anak'],
                 'qty_stock' => 0,
                 'box_stock' => 0,
-                'jalur'     => $chosenLayout['jalur'],
+                'jalur'     => $chosen['jalur'],
                 'admin'     => $admin,
                 'created_at' => $now,
             ]);
-
             $this->pemasukanModel->insert([
                 'id_anak'   => $data['id_anak'],
                 'qty_masuk' => round($data['total_qty'], 2),
                 'box_masuk' => $data['box_count'],
-                'jalur'     => $chosenLayout['jalur'],
+                'jalur'     => $chosen['jalur'],
                 'admin'     => $admin,
                 'created_at' => $now,
             ]);
         }
 
-        // Final redirect with alert
-        $msg = 'Import & clustering selesai!';
-        if (!empty($failedRows)) {
-            $msg .= ' Beberapa baris gagal diproses: ' . implode(', ', $failedRows) . '.';
+        // Bangun pesan akhir dengan detail error
+        $msg    = 'Import selesai.';
+        $status = 'success';
+        if ($failedRows || $skippedExists || $skippedNew) {
+            $status = 'error';
+            $msg .= '<ul>';
+            if ($failedRows) {
+            $msg .= '<li>Baris gagal: ' . implode(', ', $failedRows) . '</li>';
+            }
+            if ($skippedExists) {
+            $msg .= '<li>Baris penuh jalur (exists): ' . implode(', ', $skippedExists) . '</li>';
+            }
+            if ($skippedNew) {
+            $msg .= '<li>Anak baru tanpa space: ' . implode(', ', $skippedNew) . '</li>';
+            }
+            if ($errorDetails) {
+            $msg .= '<li>Detail:<ul>';
+            foreach ($errorDetails as $row => $err) {
+                $msg .= '<li>' . htmlspecialchars($row) . ': ' . htmlspecialchars($err) . '</li>';
+            }
+            $msg .= '</ul></li>';
+            }
+            $msg .= '</ul>';
+            return redirect()->back()->with($status, $msg);
         }
-        return redirect()->back()->with('success', 'Import & clustering selesai!');
+
+        return redirect()->back()->with($status, $msg);
     }
 }

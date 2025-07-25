@@ -44,17 +44,36 @@ class StockModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    public function getDataStock($jalur)
+    public function getDataStock(string $jalur)
     {
-        return $this->select('layout.jalur, SUM(COALESCE(stock.qty_stock, 0)) AS qty_stock, SUM(COALESCE(stock.box_stock, 0)) AS box_stock, tabel_induk.no_model, tabel_anak.area, tabel_anak.inisial, tabel_anak.style, tabel_anak.warna')
-            ->join('layout', 'layout.jalur = stock.jalur', 'left') // left join agar tetap menampilkan jalur walau stock kosong
-            ->join('tabel_anak', 'stock.id_anak = tabel_anak.id_anak', 'left') // left join juga untuk tabel anak
-            ->join('tabel_induk', 'tabel_induk.id_induk = tabel_anak.id_induk', 'left') // left join untuk tabel induk
+        return $this->select([
+            'layout.jalur',
+            'tabel_induk.no_model',
+            'tabel_anak.area',
+            'tabel_anak.inisial',
+            'tabel_anak.style',
+            'tabel_anak.warna',
+            'SUM(COALESCE(stock.qty_stock, 0))   AS qty_stock',
+            'SUM(COALESCE(stock.box_stock, 0))  AS box_stock',
+        ])
+            // ->from('stock')
+            ->join('layout',       'layout.jalur        = stock.jalur',      'left')
+            ->join('tabel_anak',   'tabel_anak.id_anak   = stock.id_anak',   'left')
+            ->join('tabel_induk',  'tabel_induk.id_induk = tabel_anak.id_induk', 'left')
             ->where('layout.jalur', $jalur)
-            ->groupBy('tabel_anak.inisial')
-            ->orderBy('tabel_induk.no_model, tabel_anak.inisial', 'ASC')
+            ->groupBy([
+                'layout.jalur',
+                'tabel_induk.no_model',
+                'tabel_anak.area',
+                'tabel_anak.inisial',
+                'tabel_anak.style',
+                'tabel_anak.warna',
+            ])
+            ->orderBy('tabel_induk.no_model', 'ASC')
+            ->orderBy('tabel_anak.inisial',  'ASC')
             ->findAll();
     }
+
 
     public function getAllStock($nomodel = null)
     {
